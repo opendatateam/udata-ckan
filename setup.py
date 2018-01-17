@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
 
 import io
 import re
@@ -125,7 +124,7 @@ setup(
     },
     license='AGPL',
     zip_safe=False,
-    keywords='udata, harvester, CKAN',
+    keywords='udata harvester CKAN',
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Programming Language :: Python',
