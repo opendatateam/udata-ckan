@@ -8,16 +8,14 @@ from datetime import datetime
 from os.path import join, dirname, exists
 from uuid import uuid4
 
-import httpretty
 import pytest
 
 from udata.core.organization.factories import OrganizationFactory
-from udata.models import Dataset, License
-from udata.tags import MAX_TAG_LENGTH
-from udata.utils import faker
-
 from udata.harvest import actions
 from udata.harvest.tests.factories import HarvestSourceFactory
+from udata.models import Dataset
+from udata.tags import MAX_TAG_LENGTH
+from udata.utils import faker
 
 log = logging.getLogger(__name__)
 
@@ -27,7 +25,7 @@ CKAN_URL = 'http://ckan.test.org/'
 DATA_DIR = join(dirname(__file__), 'data')
 
 
-def mock_action(action, content):
+def mock_action(action, content, httpretty):
     if isinstance(content, basestring) and content.endswith('.json'):
         filename = join(DATA_DIR,  content)
         with open(filename) as f:
@@ -166,11 +164,11 @@ def package_show_factory(name):
         }
     }
 
+
 pytestmark = pytest.mark.usefixtures('clean_db')
 
 
-@pytest.mark.httpretty
-def test_simple():
+def test_simple(httpretty):
     org = OrganizationFactory()
     source = HarvestSourceFactory(backend='ckan',
                                   url=CKAN_URL,
@@ -179,7 +177,7 @@ def test_simple():
     mock_action('package_list', {
         'success': True,
         'result': ['dataset-1', 'dataset-2', 'dataset-3'],
-    })
+    }, httpretty)
 
     def package_show_responses(request, uri, headers):
         dataset_id = request.querystring['id'][0]
@@ -192,7 +190,7 @@ def test_simple():
             response = f.read()
         return 200, headers, response
 
-    mock_action('package_show', package_show_responses)
+    mock_action('package_show', package_show_responses, httpretty)
 
     actions.run(source.slug)
 
