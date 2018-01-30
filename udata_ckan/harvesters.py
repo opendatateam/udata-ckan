@@ -235,7 +235,7 @@ class CkanBackend(BaseBackend):
                 continue
             try:
                 resource = get_by(dataset.resources, 'id', UUID(res['id']))
-            except:
+            except Exception:
                 log.error('Unable to parse resource ID %s', res['id'])
                 continue
             if not resource:
