@@ -25,7 +25,7 @@ CKAN_URL = 'http://ckan.test.org/'
 DATA_DIR = join(dirname(__file__), 'data')
 
 
-def mock_action(action, content, httpretty):
+def mock_action(action, content, rmock):
     if isinstance(content, basestring) and content.endswith('.json'):
         filename = join(DATA_DIR,  content)
         with open(filename) as f:
@@ -35,9 +35,8 @@ def mock_action(action, content, httpretty):
     else:
         response = json.dumps(content)
     api_url = ''.join((CKAN_URL, 'api/3/action/', action))
-    httpretty.register_uri(httpretty.GET, api_url,
-                           body=response,
-                           content_type='application/json')
+    rmock.get(api_url, text=response,
+              headers={'Content-Type': 'application/json'})
 
 
 def resource_factory():
@@ -165,10 +164,13 @@ def package_show_factory(name):
     }
 
 
-pytestmark = pytest.mark.usefixtures('clean_db')
+pytestmark = [
+    pytest.mark.usefixtures('clean_db'),
+    pytest.mark.options(PLUGINS=['ckan'])
+]
 
 
-def test_simple(httpretty):
+def test_simple(rmock):
     org = OrganizationFactory()
     source = HarvestSourceFactory(backend='ckan',
                                   url=CKAN_URL,
@@ -177,10 +179,10 @@ def test_simple(httpretty):
     mock_action('package_list', {
         'success': True,
         'result': ['dataset-1', 'dataset-2', 'dataset-3'],
-    }, httpretty)
+    }, rmock)
 
-    def package_show_responses(request, uri, headers):
-        dataset_id = request.querystring['id'][0]
+    def package_show_responses(request, context):
+        dataset_id = request.qs['id'][0]
         filename = '{0}.json'.format(dataset_id)
         filename = join(DATA_DIR, filename)
         if not exists(filename):
@@ -188,9 +190,9 @@ def test_simple(httpretty):
             pytest.fail(msg)
         with open(filename) as f:
             response = f.read()
-        return 200, headers, response
+        return response
 
-    mock_action('package_show', package_show_responses, httpretty)
+    mock_action('package_show', package_show_responses, rmock)
 
     actions.run(source.slug)
 
