@@ -1,6 +1,6 @@
 # Changelog
 
-## Current (in progress)
+## 1.0.1 (2018-03-13)
 
 - Fix packaging [#2](https://github.com/opendatateam/udata-ckan/pull/2)
 - Make use of [udata pytest plugin](opendatateam/udata#1400) [#3](https://github.com/opendatateam/udata-ckan/pull/3)
