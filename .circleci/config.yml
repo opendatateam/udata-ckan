@@ -20,9 +20,9 @@ jobs:
           command: export BASE_BRANCH=$(base_branch)
       - restore_cache:
           keys:
-          - py-cache-{{ arch }}-{{ checksum "python.deps" }}
-          - py-cache-{{ arch }}-{{ .Branch }}
-          - py-cache-{{ arch }}-{{ .Environment.BASE_BRANCH }}
+          - py-cache-v3-{{ arch }}-{{ checksum "python.deps" }}
+          - py-cache-v3-{{ arch }}-{{ .Branch }}
+          - py-cache-v3-{{ arch }}-{{ .Environment.BASE_BRANCH }}
       - run:
           name: Install python dependencies
           command: |
