@@ -1,5 +1,9 @@
 # Changelog
 
+## Current (in progress)
+
+- Nothing yet
+
 ## 1.0.1 (2018-03-13)
 
 - Fix packaging [#2](https://github.com/opendatateam/udata-ckan/pull/2)
