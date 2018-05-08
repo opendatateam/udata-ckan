@@ -8,6 +8,28 @@ jobs:
       - image: mongo:3.2
       - image: redis
       - image: udata/elasticsearch:2.4.5
+      - image: postgres:alpine
+        name: db
+        environment:
+          POSTGRES_DB: ckan
+          POSTGRES_USER: ckan
+          POSTGRES_PASSWORD: ckan
+          DS_RO_PASS: datastore
+      - image: ckan/solr:latest
+        name: solr
+      - image: udata/ckan-test
+        environment:
+          CKAN_SQLALCHEMY_URL: postgresql://ckan:ckan@db/ckan
+          CKAN_DATASTORE_WRITE_URL: postgresql://ckan:ckan@db/datastore
+          CKAN_DATASTORE_READ_URL: postgresql://datastore_ro:datastore@db/datastore
+          CKAN_SOLR_URL: http://solr:8983/solr/ckan
+          CKAN_REDIS_URL: redis://localhost:6379/1
+          CKAN_DATAPUSHER_URL: http://datapusher:8800
+          CKAN_SITE_URL: http://localhost:5000
+          CKAN_MAX_UPLOAD_SIZE_MB: 50
+          CKAN_WAIT_FOR: tcp://db:5432
+          POSTGRES_PASSWORD: ckan
+          DS_RO_PASS: datastore
     environment:
        BASH_ENV: /root/.bashrc
     steps:
