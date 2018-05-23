@@ -1,0 +1,35 @@
+version: "3"
+
+services:
+  ckan:
+    image: udata/ckan-test
+    links:
+      - db
+      - solr
+      - redis
+    ports:
+      - "5000:5000"
+      - "8000:8000"
+    environment:
+      - CKAN_SQLALCHEMY_URL=postgresql://ckan:ckan@db/ckan
+      - CKAN_DATASTORE_WRITE_URL=postgresql://ckan:ckan@db/datastore
+      - CKAN_DATASTORE_READ_URL=postgresql://datastore_ro:datastore@db/datastore
+      - CKAN_SOLR_URL=http://solr:8983/solr/ckan
+      - CKAN_REDIS_URL=redis://redis:6379/1
+      - CKAN_DATAPUSHER_URL=http://datapusher:8800
+      - CKAN_SITE_URL=http://localhost:5000
+      - CKAN_WAIT_FOR=tcp://db:5432
+      - POSTGRES_PASSWORD=ckan
+      - DS_RO_PASS=datastore
+  db:
+    image: postgres:alpine
+    environment:
+      - POSTGRES_DB=ckan
+      - POSTGRES_USER=ckan
+      - POSTGRES_PASSWORD=ckan
+      - DS_RO_PASS=datastore
+    tmpfs: /var/lib/postgresql/data
+  solr:
+    image: ckan/solr:latest
+  redis:
+    image: redis:latest

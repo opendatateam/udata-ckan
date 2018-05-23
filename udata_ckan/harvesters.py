@@ -40,7 +40,7 @@ resource = {
     'hash': Any(All(basestring, hash), None),
     'created': All(basestring, to_date),
     'last_modified': Any(All(basestring, to_date), None),
-    'url': All(basestring, is_url(full=True)),
+    'url': All(basestring, is_url()),
     'resource_type': All(empty_none,
                          DefaultTo('file'),
                          basestring,

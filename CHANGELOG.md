@@ -2,7 +2,7 @@
 
 ## Current (in progress)
 
-- Nothing yet
+- Test against a real CKAN instance [#23](https://github.com/opendatateam/udata-ckan/pull/23)
 
 ## 1.0.1 (2018-03-13)
 
