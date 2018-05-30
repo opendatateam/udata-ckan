@@ -11,11 +11,11 @@ from voluptuous import (
     Schema, All, Any, Lower, Coerce, DefaultTo
 )
 
-
+from udata.i18n import lazy_gettext as _
 from udata.models import db, Resource, License, SpatialCoverage
 from udata.utils import get_by, daterange_start, daterange_end
 
-from udata.harvest.backends.base import BaseBackend
+from udata.harvest.backends.base import BaseBackend, HarvestFilter
 from udata.harvest.exceptions import HarvestException, HarvestSkipException
 from udata.harvest.filters import (
     boolean, email, to_date, slug, normalize_tag, normalize_string,
@@ -101,6 +101,11 @@ schema = Schema({
 
 class CkanBackend(BaseBackend):
     display_name = 'CKAN'
+    filters = (
+        HarvestFilter(_('Organization'), 'organization', str,
+                      _('A CKAN Organization name')),
+        HarvestFilter(_('Tag'), 'tags', str, _('A CKAN tag name')),
+    )
 
     def get_headers(self):
         headers = super(CkanBackend, self).get_headers()
@@ -134,8 +139,21 @@ class CkanBackend(BaseBackend):
         # status = self.get_status()
         # fix = status['ckan_version'] < '1.8'
         fix = False
-        response = self.get_action('package_list', fix=fix)
-        names = response['result']
+
+        filters = self.config.get('filters', [])
+        if len(filters) > 0:
+            # Build a q search query based on filters
+            # use package_search because package_list doesn't allow filtering
+            # use q parameters because fq is broken with multiple filters
+            params = []
+            for f in filters:
+                params.append('{key}:{value}'.format(**f))
+            q = ' AND '.join(params)
+            response = self.get_action('package_search', fix=fix, q=q)
+            names = [r['name'] for r in response['result']['results']]
+        else:
+            response = self.get_action('package_list', fix=fix)
+            names = response['result']
         if self.max_items:
             names = names[:self.max_items]
         for name in names:
