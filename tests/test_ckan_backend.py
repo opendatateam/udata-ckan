@@ -74,7 +74,6 @@ def feed_ckan_and_harvest(request, source, ckan, app):
         data, kwargs = request.getfixturevalue(fixture)
         result = ckan.action('package_create', data)
         rundata[fixture] = data, result, kwargs
-        # rundata.results[fixture] = result
 
     with app.app_context():
         actions.run(source.slug)
