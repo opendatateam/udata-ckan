@@ -136,9 +136,7 @@ class CkanBackend(BaseBackend):
 
     def initialize(self):
         '''List all datasets for a given ...'''
-        # status = self.get_status()
-        # fix = status['ckan_version'] < '1.8'
-        fix = False
+        fix = False  # Fix should be True for CKAN < '1.8'
 
         filters = self.config.get('filters', [])
         if len(filters) > 0:
