@@ -1,5 +1,9 @@
 # Changelog
 
+## Current (in progress)
+
+- Nothing yet
+
 ## 1.1.0 (2018-06-06)
 
 - Test against a real CKAN instance [#23](https://github.com/opendatateam/udata-ckan/pull/23)
