@@ -120,7 +120,10 @@ setup(
     entry_points={
         'udata.harvesters': [
             'ckan = udata_ckan.harvesters:CkanBackend',
-        ]
+        ],
+        'udata.models': [
+            'ckan = udata_ckan.models',
+        ],
     },
     license='AGPL',
     zip_safe=False,
