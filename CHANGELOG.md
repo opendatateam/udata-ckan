@@ -4,6 +4,7 @@
 
 - Test against a real CKAN instance [#23](https://github.com/opendatateam/udata-ckan/pull/23)
 - Allows to filter on Organizations and Tags [#26](https://github.com/opendatateam/udata-ckan/pull/26)
+- Register `ckan:` prefixed extras [#28](https://github.com/opendatateam/udata-ckan/pull/28)
 
 ## 1.0.1 (2018-03-13)
 
