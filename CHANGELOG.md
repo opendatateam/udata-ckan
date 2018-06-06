@@ -1,6 +1,6 @@
 # Changelog
 
-## Current (in progress)
+## 1.1.0 (2018-06-06)
 
 - Test against a real CKAN instance [#23](https://github.com/opendatateam/udata-ckan/pull/23)
 - Allows to filter on Organizations and Tags [#26](https://github.com/opendatateam/udata-ckan/pull/26)
