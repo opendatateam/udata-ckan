@@ -8,6 +8,9 @@ import requests
 
 from urlparse import urljoin
 
+from faker.providers import BaseProvider
+from udata.utils import faker_provider, faker
+
 RE_API_KEY = re.compile(r'apikey=(?P<apikey>[a-f0-9-]+)\s')
 CKAN_URL = 'http://localhost:5000'
 PASTER_URL = 'http://localhost:8000'
@@ -93,3 +96,9 @@ def ckan_factory(paster):
         apikey = match.group('apikey')
         return CkanClient(apikey)
     return ckan
+
+
+@faker_provider
+class UdataCkanProvider(BaseProvider):
+    def unique_url(self):
+        return '{0}?_={1}'.format(faker.uri(), faker.unique_string())

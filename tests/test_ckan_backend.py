@@ -130,9 +130,9 @@ def dataset_for(result):
 
 @pytest.fixture(scope='module')
 def minimal():
-    resource_url = faker.uri()
+    resource_url = faker.unique_url()
     data = {
-        'name': faker.slug(),
+        'name': faker.unique_string(),
         'title': faker.sentence(),
         'notes': faker.paragraph(),
         'resources': [{'url': resource_url}],
@@ -145,12 +145,12 @@ def all_metadata():
     resource_data = {
         'name': faker.sentence(),
         'description': faker.paragraph(),
-        'url': faker.uri(),
+        'url': faker.unique_url(),
         'mimetype': faker.mime_type(),
         'format': faker.file_extension(),
     }
     data = {
-        'name': faker.slug(),
+        'name': faker.unique_string(),
         'title': faker.sentence(),
         'notes': faker.paragraph(),
         'tags': [{'name': faker.unique_string()} for _ in range(3)],
@@ -163,10 +163,10 @@ def all_metadata():
 def spatial_geom_polygon():
     polygon = faker.polygon()
     data = {
-        'name': faker.slug(),
+        'name': faker.unique_string(),
         'title': faker.sentence(),
         'notes': faker.paragraph(),
-        'resources': [{'url': faker.uri()}],
+        'resources': [{'url': faker.unique_url()}],
         'extras': [{'key': 'spatial', 'value': json.dumps(polygon)}]
     }
     return data, {'polygon': polygon}
@@ -176,10 +176,10 @@ def spatial_geom_polygon():
 def spatial_geom_multipolygon():
     multipolygon = faker.multipolygon()
     data = {
-        'name': faker.slug(),
+        'name': faker.unique_string(),
         'title': faker.sentence(),
         'notes': faker.paragraph(),
-        'resources': [{'url': faker.uri()}],
+        'resources': [{'url': faker.unique_url()}],
         'extras': [{'key': 'spatial', 'value': json.dumps(multipolygon)}]
     }
     return data, {'multipolygon': multipolygon}
@@ -188,11 +188,37 @@ def spatial_geom_multipolygon():
 @pytest.fixture(scope='module')
 def skipped_no_resources():
     return {
-        'name': faker.slug(),
+        'name': faker.unique_string(),
         'title': faker.sentence(),
         'notes': faker.paragraph(),
         'tags': [{'name': faker.unique_string()} for _ in range(3)],
     }, None
+
+
+@pytest.fixture(scope='module')
+def ckan_url_is_url():
+    url = faker.unique_url()
+    data = {
+        'name': faker.unique_string(),
+        'title': faker.sentence(),
+        'notes': faker.paragraph(),
+        'resources': [{'url': faker.unique_url()}],
+        'url': url
+    }
+    return data, {'url': url}
+
+
+@pytest.fixture(scope='module')
+def ckan_url_is_a_string():
+    url = faker.sentence()
+    data = {
+        'name': faker.unique_string(),
+        'title': faker.sentence(),
+        'notes': faker.paragraph(),
+        'resources': [{'url': faker.unique_url()}],
+        'url': url
+    }
+    return data, {'url': url}
 
 
 ##############################################################################
@@ -266,3 +292,18 @@ def test_skip_no_resources(source, result):
 
     assert item.status == 'skipped'
     assert dataset_for(result) is None
+
+
+@pytest.mark.ckan_data('ckan_url_is_url')
+def test_ckan_url_is_url(data, result):
+    dataset = dataset_for(result)
+    assert dataset.extras['remote_url'] == data['url']
+    assert 'ckan:source' not in dataset.extras
+
+
+@pytest.mark.ckan_data('ckan_url_is_a_string')
+def test_ckan_url_is_string(ckan, data, result):
+    dataset = dataset_for(result)
+    expected_url = '{0}/dataset/{1}'.format(ckan.BASE_URL, data['name'])
+    assert dataset.extras['remote_url'] == expected_url
+    assert dataset.extras['ckan:source'] == data['url']

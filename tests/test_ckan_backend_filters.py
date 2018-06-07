@@ -23,10 +23,10 @@ def ckan(ckan_factory):
 
 def package_factory(ckan, **kwargs):
     data = {
-        'name': faker.slug(),
+        'name': faker.unique_string(),
         'title': faker.sentence(),
         'notes': faker.paragraph(),
-        'resources': [{'url': faker.uri()}],
+        'resources': [{'url': faker.unique_url()}],
     }
     data.update(kwargs)
     response = ckan.action('package_create', data)

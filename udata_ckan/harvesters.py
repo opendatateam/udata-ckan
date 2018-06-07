@@ -11,6 +11,7 @@ from voluptuous import (
     Schema, All, Any, Lower, Coerce, DefaultTo
 )
 
+from udata import uris
 from udata.i18n import lazy_gettext as _
 from udata.models import db, Resource, License, SpatialCoverage
 from udata.utils import get_by, daterange_start, daterange_end
@@ -116,6 +117,10 @@ class CkanBackend(BaseBackend):
 
     def action_url(self, endpoint):
         path = '/'.join(['api/3/action', endpoint])
+        return urljoin(self.source.url, path)
+
+    def dataset_url(self, name):
+        path = '/'.join(['dataset', name])
         return urljoin(self.source.url, path)
 
     def get_action(self, endpoint, fix=False, **kwargs):
@@ -243,7 +248,13 @@ class CkanBackend(BaseBackend):
 
         # Remote URL
         if data.get('url'):
-            dataset.extras['remote_url'] = data['url']
+            try:
+                url = uris.validate(data['url'])
+            except uris.ValidationError:
+                dataset.extras['remote_url'] = self.dataset_url(data['name'])
+                dataset.extras['ckan:source'] = data['url']
+            else:
+                dataset.extras['remote_url'] = url
 
         # Resources
         for res in data['resources']:
