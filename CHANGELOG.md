@@ -2,7 +2,7 @@
 
 ## Current (in progress)
 
-- Nothing yet
+- Only store `url` field in `remote_url` extra if this is an URL otherwise store it in `ckan:source` [#30](https://github.com/opendatateam/udata-ckan/pull/30)
 
 ## 1.1.0 (2018-06-06)
 
