@@ -234,7 +234,7 @@ class CkanBackend(BaseBackend):
             elif spatial_geom['type'] == 'MultiPolygon':
                 coordinates = spatial_geom['coordinates']
             else:
-                HarvestException('Unsupported spatial geometry')
+                raise HarvestException('Unsupported spatial geometry')
             dataset.spatial.geom = {
                 'type': 'MultiPolygon',
                 'coordinates': coordinates
