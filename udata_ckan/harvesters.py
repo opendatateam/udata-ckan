@@ -205,7 +205,11 @@ class CkanBackend(BaseBackend):
             # GeoJSON representation (Polygon or Point)
             key = extra['key']
             value = extra['value']
-            if key == 'spatial':
+            if value is None or (
+                isinstance(value, basestring) and not value.strip()
+            ):
+                continue
+            elif key == 'spatial':
                 spatial_geom = json.loads(value)
             #  Textual representation of the extent / location
             elif key == 'spatial-text':

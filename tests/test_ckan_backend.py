@@ -71,7 +71,8 @@ def feed_ckan_and_harvest(request, source, ckan, app):
     fixtures = [i.get_marker('ckan_data').args[0] for i in items]
 
     for fixture in fixtures:
-        data, kwargs = request.getfixturevalue(fixture)
+        values = request.getfixturevalue(fixture)
+        data, kwargs = values if isinstance(values, tuple) else (values, {})
         result = ckan.action('package_create', data)
         rundata[fixture] = data, result, kwargs
 
@@ -192,7 +193,7 @@ def skipped_no_resources():
         'title': faker.sentence(),
         'notes': faker.paragraph(),
         'tags': [{'name': faker.unique_string()} for _ in range(3)],
-    }, None
+    }
 
 
 @pytest.fixture(scope='module')
@@ -258,6 +259,22 @@ def frequency_as_unknown_value():
         'extras': [{'key': 'frequency', 'value': value}]
     }
     return data, {'expected': value}
+
+
+@pytest.fixture(scope='module')
+def empty_extras():
+    return {
+        'name': faker.unique_string(),
+        'title': faker.sentence(),
+        'notes': faker.paragraph(),
+        'resources': [{'url': faker.unique_url()}],
+        'extras': [
+            {'key': 'none', 'value': None},
+            {'key': 'blank', 'value': ''},
+            {'key': 'spaces', 'value': '  '},
+        ]
+
+    }
 
 
 ##############################################################################
@@ -352,14 +369,14 @@ def test_ckan_url_is_string(ckan, data, result):
 def test_can_parse_frequency_as_uri(result, kwargs):
     dataset = dataset_for(result)
     assert dataset.frequency == kwargs['expected']
-    assert dataset.extras.get('ckan:frequency') is None
+    assert 'ckan:frequency' not in dataset.extras
 
 
 @pytest.mark.ckan_data('frequency_as_exact_match')
 def test_can_parse_frequency_as_exact_match(result, kwargs):
     dataset = dataset_for(result)
     assert dataset.frequency == kwargs['expected']
-    assert dataset.extras.get('ckan:frequency') is None
+    assert 'ckan:frequency' not in dataset.extras
 
 
 @pytest.mark.ckan_data('frequency_as_unknown_value')
@@ -367,3 +384,11 @@ def test_can_parse_frequency_as_unkown_value(result, kwargs):
     dataset = dataset_for(result)
     assert dataset.extras['ckan:frequency'] == kwargs['expected']
     assert dataset.frequency is None
+
+
+@pytest.mark.ckan_data('empty_extras')
+def test_skip_empty_extras(result):
+    dataset = dataset_for(result)
+    assert 'none' not in dataset.extras
+    assert 'blank' not in dataset.extras
+    assert 'spaces' not in dataset.extras
