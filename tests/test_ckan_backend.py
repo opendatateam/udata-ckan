@@ -10,6 +10,7 @@ from udata.harvest import actions
 from udata.harvest.tests.factories import HarvestSourceFactory
 from udata.models import Dataset
 from udata.settings import Defaults, Testing
+from udata.core.spatial.factories import GeoZoneFactory
 from udata.tests.plugin import drop_db
 from udata.utils import faker
 
@@ -68,10 +69,11 @@ def feed_ckan_and_harvest(request, source, ckan, app):
     items = [item for item in session.items if item.module == module]
     rundata = {}
 
-    fixtures = [i.get_marker('ckan_data').args[0] for i in items]
+    fixtures = set([i.get_marker('ckan_data').args[0] for i in items])
 
     for fixture in fixtures:
-        data, kwargs = request.getfixturevalue(fixture)
+        values = request.getfixturevalue(fixture)
+        data, kwargs = values if isinstance(values, tuple) else (values, {})
         result = ckan.action('package_create', data)
         rundata[fixture] = data, result, kwargs
 
@@ -186,13 +188,82 @@ def spatial_geom_multipolygon():
 
 
 @pytest.fixture(scope='module')
+def known_spatial_text_name(app):
+    with app.app_context():
+        zone = GeoZoneFactory(validity=None)
+    data = {
+        'name': faker.unique_string(),
+        'title': faker.sentence(),
+        'notes': faker.paragraph(),
+        'resources': [{'url': faker.unique_url()}],
+        'extras': [{'key': 'spatial-text', 'value': zone.name}]
+    }
+    return data, {'zone': zone}
+
+
+@pytest.fixture(scope='module')
+def known_spatial_text_slug(app):
+    with app.app_context():
+        zone = GeoZoneFactory(validity=None)
+    data = {
+        'name': faker.unique_string(),
+        'title': faker.sentence(),
+        'notes': faker.paragraph(),
+        'resources': [{'url': faker.unique_url()}],
+        'extras': [{'key': 'spatial-text', 'value': zone.slug}]
+    }
+    return data, {'zone': zone}
+
+
+@pytest.fixture(scope='module')
+def multiple_known_spatial_text(app):
+    name = faker.word()
+    with app.app_context():
+        GeoZoneFactory.create_batch(2, name=name, validity=None)
+    data = {
+        'name': faker.unique_string(),
+        'title': faker.sentence(),
+        'notes': faker.paragraph(),
+        'resources': [{'url': faker.unique_url()}],
+        'extras': [{'key': 'spatial-text', 'value': name}]
+    }
+    return data, {'name': name}
+
+
+@pytest.fixture(scope='module')
+def unknown_spatial_text():
+    spatial = 'Somewhere'
+    data = {
+        'name': faker.unique_string(),
+        'title': faker.sentence(),
+        'notes': faker.paragraph(),
+        'resources': [{'url': faker.unique_url()}],
+        'extras': [{'key': 'spatial-text', 'value': spatial}]
+    }
+    return data, {'spatial': spatial}
+
+
+@pytest.fixture(scope='module')
+def spatial_uri():
+    spatial = 'http://www.geonames.org/2111964'
+    data = {
+        'name': faker.unique_string(),
+        'title': faker.sentence(),
+        'notes': faker.paragraph(),
+        'resources': [{'url': faker.unique_url()}],
+        'extras': [{'key': 'spatial-uri', 'value': spatial}]
+    }
+    return data, {'spatial': spatial}
+
+
+@pytest.fixture(scope='module')
 def skipped_no_resources():
     return {
         'name': faker.unique_string(),
         'title': faker.sentence(),
         'notes': faker.paragraph(),
         'tags': [{'name': faker.unique_string()} for _ in range(3)],
-    }, None
+    }
 
 
 @pytest.fixture(scope='module')
@@ -219,6 +290,61 @@ def ckan_url_is_a_string():
         'url': url
     }
     return data, {'url': url}
+
+
+@pytest.fixture(scope='module')
+def frequency_as_rdf_uri():
+    data = {
+        'name': faker.unique_string(),
+        'title': faker.sentence(),
+        'notes': faker.paragraph(),
+        'resources': [{'url': faker.unique_url()}],
+        'extras': [
+            {'key': 'frequency', 'value': 'http://purl.org/cld/freq/daily'}
+        ]
+    }
+    return data, {'expected': 'daily'}
+
+
+@pytest.fixture(scope='module')
+def frequency_as_exact_match():
+    data = {
+        'name': faker.unique_string(),
+        'title': faker.sentence(),
+        'notes': faker.paragraph(),
+        'resources': [{'url': faker.unique_url()}],
+        'extras': [{'key': 'frequency', 'value': 'daily'}]
+    }
+    return data, {'expected': 'daily'}
+
+
+@pytest.fixture(scope='module')
+def frequency_as_unknown_value():
+    value = 'unkowwn-value'
+    data = {
+        'name': faker.unique_string(),
+        'title': faker.sentence(),
+        'notes': faker.paragraph(),
+        'resources': [{'url': faker.unique_url()}],
+        'extras': [{'key': 'frequency', 'value': value}]
+    }
+    return data, {'expected': value}
+
+
+@pytest.fixture(scope='module')
+def empty_extras():
+    return {
+        'name': faker.unique_string(),
+        'title': faker.sentence(),
+        'notes': faker.paragraph(),
+        'resources': [{'url': faker.unique_url()}],
+        'extras': [
+            {'key': 'none', 'value': None},
+            {'key': 'blank', 'value': ''},
+            {'key': 'spaces', 'value': '  '},
+        ]
+
+    }
 
 
 ##############################################################################
@@ -248,6 +374,7 @@ def test_minimal_metadata(data, result, kwargs):
 @pytest.mark.ckan_data('all_metadata')
 def test_all_metadata(data, result):
     resource_data = data['resources'][0]
+    resource_result = result['result']['resources'][0]
 
     dataset = dataset_for(result)
     assert dataset.title == data['title']
@@ -262,7 +389,8 @@ def test_all_metadata(data, result):
     assert resource.title == resource_data['name']
     assert resource.description == resource_data['description']
     assert resource.url == resource_data['url']
-    assert resource.format == resource_data['format']
+    # Use result because format is normalized by CKAN
+    assert resource.format == resource_result['format'].lower()
     assert resource.mime == resource_data['mimetype']
 
 
@@ -307,3 +435,69 @@ def test_ckan_url_is_string(ckan, data, result):
     expected_url = '{0}/dataset/{1}'.format(ckan.BASE_URL, data['name'])
     assert dataset.extras['remote_url'] == expected_url
     assert dataset.extras['ckan:source'] == data['url']
+
+
+@pytest.mark.ckan_data('frequency_as_rdf_uri')
+def test_can_parse_frequency_as_uri(result, kwargs):
+    dataset = dataset_for(result)
+    assert dataset.frequency == kwargs['expected']
+    assert 'ckan:frequency' not in dataset.extras
+
+
+@pytest.mark.ckan_data('frequency_as_exact_match')
+def test_can_parse_frequency_as_exact_match(result, kwargs):
+    dataset = dataset_for(result)
+    assert dataset.frequency == kwargs['expected']
+    assert 'ckan:frequency' not in dataset.extras
+
+
+@pytest.mark.ckan_data('frequency_as_unknown_value')
+def test_can_parse_frequency_as_unkown_value(result, kwargs):
+    dataset = dataset_for(result)
+    assert dataset.extras['ckan:frequency'] == kwargs['expected']
+    assert dataset.frequency is None
+
+
+@pytest.mark.ckan_data('empty_extras')
+def test_skip_empty_extras(result):
+    dataset = dataset_for(result)
+    assert 'none' not in dataset.extras
+    assert 'blank' not in dataset.extras
+    assert 'spaces' not in dataset.extras
+
+
+@pytest.mark.ckan_data('known_spatial_text_name')
+def test_known_spatial_text_name(result, kwargs):
+    zone = kwargs['zone']
+    dataset = dataset_for(result)
+    assert zone in dataset.spatial.zones
+    assert 'ckan:spatial-text' not in dataset.extras
+
+
+@pytest.mark.ckan_data('known_spatial_text_slug')
+def test_known_spatial_text_slug(result, kwargs):
+    zone = kwargs['zone']
+    dataset = dataset_for(result)
+    assert zone in dataset.spatial.zones
+    assert 'ckan:spatial-text' not in dataset.extras
+
+
+@pytest.mark.ckan_data('multiple_known_spatial_text')
+def test_store_unsure_spatial_text_as_extra(result, kwargs):
+    dataset = dataset_for(result)
+    assert dataset.extras['ckan:spatial-text'] == kwargs['name']
+    assert dataset.spatial is None
+
+
+@pytest.mark.ckan_data('unknown_spatial_text')
+def test_keep_unknown_spatial_text_as_extra(result, kwargs):
+    dataset = dataset_for(result)
+    assert dataset.extras['ckan:spatial-text'] == kwargs['spatial']
+    assert dataset.spatial is None
+
+
+@pytest.mark.ckan_data('spatial_uri')
+def test_keep_unknown_spatial_uri_as_extra(result, kwargs):
+    dataset = dataset_for(result)
+    assert dataset.extras['ckan:spatial-uri'] == kwargs['spatial']
+    assert dataset.spatial is None

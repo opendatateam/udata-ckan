@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import json
 import logging
 
+from datetime import datetime
 from uuid import UUID
 from urlparse import urljoin
 
@@ -13,7 +14,11 @@ from voluptuous import (
 
 from udata import uris
 from udata.i18n import lazy_gettext as _
-from udata.models import db, Resource, License, SpatialCoverage
+from udata.core.dataset.rdf import frequency_from_rdf
+from udata.models import (
+    db, Resource, License, SpatialCoverage, GeoZone,
+    UPDATE_FREQUENCIES,
+)
 from udata.utils import get_by, daterange_start, daterange_end
 
 from udata.harvest.backends.base import BaseBackend, HarvestFilter
@@ -196,39 +201,58 @@ class CkanBackend(BaseBackend):
         dataset.extras['ckan:name'] = data['name']
 
         temporal_start, temporal_end = None, None
-        spatial_geom = None
+        spatial_geom, spatial_zone = None, None
 
         for extra in data['extras']:
-            # GeoJSON representation (Polygon or Point)
-            if extra['key'] == 'spatial':
-                spatial_geom = json.loads(extra['value'])
-            #  Textual representation of the extent / location
-            elif extra['key'] == 'spatial-text':
-                log.debug('spatial-text value not handled')
-                print 'spatial-text', extra['value']
-            # Linked Data URI representing the place name
-            elif extra['key'] == 'spatial-uri':
-                log.debug('spatial-uri value not handled')
-                print 'spatial-uri', extra['value']
-            # Update frequency
-            elif extra['key'] == 'frequency':
-                print 'frequency', extra['value']
+            key = extra['key']
+            value = extra['value']
+            if value is None or (
+                isinstance(value, basestring) and not value.strip()
+            ):
+                # Skip empty extras
+                continue
+            elif key == 'spatial':
+                # GeoJSON representation (Polygon or Point)
+                spatial_geom = json.loads(value)
+            elif key == 'spatial-text':
+                # Textual representation of the extent / location
+                qs = GeoZone.objects(db.Q(name=value) | db.Q(slug=value))
+                qs = qs.valid_at(datetime.now())
+                if qs.count() is 1:
+                    spatial_zone = qs.first()
+                else:
+                    dataset.extras['ckan:spatial-text'] = value
+                    log.debug('spatial-text value not handled: %s', value)
+            elif key == 'spatial-uri':
+                # Linked Data URI representing the place name
+                dataset.extras['ckan:spatial-uri'] = value
+                log.debug('spatial-uri value not handled: %s', value)
+            elif key == 'frequency':
+                # Update frequency
+                freq = frequency_from_rdf(value)
+                if freq:
+                    dataset.frequency = freq
+                elif value in UPDATE_FREQUENCIES:
+                    dataset.frequency = value
+                else:
+                    dataset.extras['ckan:frequency'] = value
+                    log.debug('frequency value not handled: %s', value)
             # Temporal coverage start
-            elif extra['key'] == 'temporal_start':
-                print 'temporal_start', extra['value']
-                temporal_start = daterange_start(extra['value'])
-                continue
+            elif key == 'temporal_start':
+                temporal_start = daterange_start(value)
             # Temporal coverage end
-            elif extra['key'] == 'temporal_end':
-                print 'temporal_end', extra['value']
-                temporal_end = daterange_end(extra['value'])
-                continue
-            # else:
-            #     print extra['key'], extra['value']
-            dataset.extras[extra['key']] = extra['value']
+            elif key == 'temporal_end':
+                temporal_end = daterange_end(value)
+            else:
+                dataset.extras[extra['key']] = value
+
+        if spatial_geom or spatial_zone:
+            dataset.spatial = SpatialCoverage()
+
+        if spatial_zone:
+            dataset.spatial.zones = [spatial_zone]
 
         if spatial_geom:
-            dataset.spatial = SpatialCoverage()
             if spatial_geom['type'] == 'Polygon':
                 coordinates = [spatial_geom['coordinates']]
             elif spatial_geom['type'] == 'MultiPolygon':

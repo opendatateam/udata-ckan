@@ -4,6 +4,11 @@
 
 - Only store `url` field in `remote_url` extra if this is an URL otherwise store it in `ckan:source` [#30](https://github.com/opendatateam/udata-ckan/pull/30)
 - Properly handle geometry errors [#31](https://github.com/opendatateam/udata-ckan/pull/31)
+- Improve extras parsing [#32](https://github.com/opendatateam/udata-ckan/pull/32):
+  - Skip empty extras
+  - Parse update frequencies as RDF URI or udata frequency identifier
+  - Parse `spatial-text` matching a known zone name or slug
+  - Store unknown `spatial-uri`, `spatial-text` and `frequency` as `ckan:spatial-uri`, `ckan:spatial-text` and `ckan:frequency`
 
 ## 1.1.0 (2018-06-06)
 
