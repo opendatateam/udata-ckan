@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import json
 import logging
 
+from datetime import datetime
 from uuid import UUID
 from urlparse import urljoin
 
@@ -15,7 +16,8 @@ from udata import uris
 from udata.i18n import lazy_gettext as _
 from udata.core.dataset.rdf import frequency_from_rdf
 from udata.models import (
-    db, Resource, License, SpatialCoverage, UPDATE_FREQUENCIES,
+    db, Resource, License, SpatialCoverage, GeoZone,
+    UPDATE_FREQUENCIES,
 )
 from udata.utils import get_by, daterange_start, daterange_end
 
@@ -199,26 +201,34 @@ class CkanBackend(BaseBackend):
         dataset.extras['ckan:name'] = data['name']
 
         temporal_start, temporal_end = None, None
-        spatial_geom = None
+        spatial_geom, spatial_zone = None, None
 
         for extra in data['extras']:
-            # GeoJSON representation (Polygon or Point)
             key = extra['key']
             value = extra['value']
             if value is None or (
                 isinstance(value, basestring) and not value.strip()
             ):
+                # Skip empty extras
                 continue
             elif key == 'spatial':
+                # GeoJSON representation (Polygon or Point)
                 spatial_geom = json.loads(value)
-            #  Textual representation of the extent / location
             elif key == 'spatial-text':
-                log.debug('spatial-text value not handled: %s', value)
-            # Linked Data URI representing the place name
+                # Textual representation of the extent / location
+                qs = GeoZone.objects(db.Q(name=value) | db.Q(slug=value))
+                qs = qs.valid_at(datetime.now())
+                if qs.count() is 1:
+                    spatial_zone = qs.first()
+                else:
+                    dataset.extras['ckan:spatial-text'] = value
+                    log.debug('spatial-text value not handled: %s', value)
             elif key == 'spatial-uri':
+                # Linked Data URI representing the place name
+                dataset.extras['ckan:spatial-uri'] = value
                 log.debug('spatial-uri value not handled: %s', value)
-            # Update frequency
             elif key == 'frequency':
+                # Update frequency
                 freq = frequency_from_rdf(value)
                 if freq:
                     dataset.frequency = freq
@@ -236,8 +246,13 @@ class CkanBackend(BaseBackend):
             else:
                 dataset.extras[extra['key']] = value
 
-        if spatial_geom:
+        if spatial_geom or spatial_zone:
             dataset.spatial = SpatialCoverage()
+
+        if spatial_zone:
+            dataset.spatial.zones = [spatial_zone]
+
+        if spatial_geom:
             if spatial_geom['type'] == 'Polygon':
                 coordinates = [spatial_geom['coordinates']]
             elif spatial_geom['type'] == 'MultiPolygon':
