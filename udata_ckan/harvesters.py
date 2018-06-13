@@ -204,28 +204,21 @@ class CkanBackend(BaseBackend):
                 spatial_geom = json.loads(extra['value'])
             #  Textual representation of the extent / location
             elif extra['key'] == 'spatial-text':
-                log.debug('spatial-text value not handled')
-                print 'spatial-text', extra['value']
+                log.debug('spatial-text value not handled: %s', extra['value'])
             # Linked Data URI representing the place name
             elif extra['key'] == 'spatial-uri':
-                log.debug('spatial-uri value not handled')
-                print 'spatial-uri', extra['value']
+                log.debug('spatial-uri value not handled: %s', extra['value'])
             # Update frequency
             elif extra['key'] == 'frequency':
-                print 'frequency', extra['value']
+                log.debug('frequency value not handled: %s', extra['value'])
             # Temporal coverage start
             elif extra['key'] == 'temporal_start':
-                print 'temporal_start', extra['value']
                 temporal_start = daterange_start(extra['value'])
-                continue
             # Temporal coverage end
             elif extra['key'] == 'temporal_end':
-                print 'temporal_end', extra['value']
                 temporal_end = daterange_end(extra['value'])
-                continue
-            # else:
-            #     print extra['key'], extra['value']
-            dataset.extras[extra['key']] = extra['value']
+            else:
+                dataset.extras[extra['key']] = extra['value']
 
         if spatial_geom:
             dataset.spatial = SpatialCoverage()
