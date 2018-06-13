@@ -374,6 +374,7 @@ def test_minimal_metadata(data, result, kwargs):
 @pytest.mark.ckan_data('all_metadata')
 def test_all_metadata(data, result):
     resource_data = data['resources'][0]
+    resource_result = result['result']['resources'][0]
 
     dataset = dataset_for(result)
     assert dataset.title == data['title']
@@ -388,7 +389,8 @@ def test_all_metadata(data, result):
     assert resource.title == resource_data['name']
     assert resource.description == resource_data['description']
     assert resource.url == resource_data['url']
-    assert resource.format == resource_data['format']
+    # Use result because format is normalized by CKAN
+    assert resource.format == resource_result['format'].lower()
     assert resource.mime == resource_data['mimetype']
 
 
