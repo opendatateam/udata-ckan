@@ -13,7 +13,10 @@ from voluptuous import (
 
 from udata import uris
 from udata.i18n import lazy_gettext as _
-from udata.models import db, Resource, License, SpatialCoverage
+from udata.core.dataset.rdf import frequency_from_rdf
+from udata.models import (
+    db, Resource, License, SpatialCoverage, UPDATE_FREQUENCIES,
+)
 from udata.utils import get_by, daterange_start, daterange_end
 
 from udata.harvest.backends.base import BaseBackend, HarvestFilter
@@ -200,25 +203,34 @@ class CkanBackend(BaseBackend):
 
         for extra in data['extras']:
             # GeoJSON representation (Polygon or Point)
-            if extra['key'] == 'spatial':
-                spatial_geom = json.loads(extra['value'])
+            key = extra['key']
+            value = extra['value']
+            if key == 'spatial':
+                spatial_geom = json.loads(value)
             #  Textual representation of the extent / location
-            elif extra['key'] == 'spatial-text':
-                log.debug('spatial-text value not handled: %s', extra['value'])
+            elif key == 'spatial-text':
+                log.debug('spatial-text value not handled: %s', value)
             # Linked Data URI representing the place name
-            elif extra['key'] == 'spatial-uri':
-                log.debug('spatial-uri value not handled: %s', extra['value'])
+            elif key == 'spatial-uri':
+                log.debug('spatial-uri value not handled: %s', value)
             # Update frequency
-            elif extra['key'] == 'frequency':
-                log.debug('frequency value not handled: %s', extra['value'])
+            elif key == 'frequency':
+                freq = frequency_from_rdf(value)
+                if freq:
+                    dataset.frequency = freq
+                elif value in UPDATE_FREQUENCIES:
+                    dataset.frequency = value
+                else:
+                    dataset.extras['ckan:frequency'] = value
+                    log.debug('frequency value not handled: %s', value)
             # Temporal coverage start
-            elif extra['key'] == 'temporal_start':
-                temporal_start = daterange_start(extra['value'])
+            elif key == 'temporal_start':
+                temporal_start = daterange_start(value)
             # Temporal coverage end
-            elif extra['key'] == 'temporal_end':
-                temporal_end = daterange_end(extra['value'])
+            elif key == 'temporal_end':
+                temporal_end = daterange_end(value)
             else:
-                dataset.extras[extra['key']] = extra['value']
+                dataset.extras[extra['key']] = value
 
         if spatial_geom:
             dataset.spatial = SpatialCoverage()

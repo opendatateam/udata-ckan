@@ -221,6 +221,45 @@ def ckan_url_is_a_string():
     return data, {'url': url}
 
 
+@pytest.fixture(scope='module')
+def frequency_as_rdf_uri():
+    data = {
+        'name': faker.unique_string(),
+        'title': faker.sentence(),
+        'notes': faker.paragraph(),
+        'resources': [{'url': faker.unique_url()}],
+        'extras': [
+            {'key': 'frequency', 'value': 'http://purl.org/cld/freq/daily'}
+        ]
+    }
+    return data, {'expected': 'daily'}
+
+
+@pytest.fixture(scope='module')
+def frequency_as_exact_match():
+    data = {
+        'name': faker.unique_string(),
+        'title': faker.sentence(),
+        'notes': faker.paragraph(),
+        'resources': [{'url': faker.unique_url()}],
+        'extras': [{'key': 'frequency', 'value': 'daily'}]
+    }
+    return data, {'expected': 'daily'}
+
+
+@pytest.fixture(scope='module')
+def frequency_as_unknown_value():
+    value = 'unkowwn-value'
+    data = {
+        'name': faker.unique_string(),
+        'title': faker.sentence(),
+        'notes': faker.paragraph(),
+        'resources': [{'url': faker.unique_url()}],
+        'extras': [{'key': 'frequency', 'value': value}]
+    }
+    return data, {'expected': value}
+
+
 ##############################################################################
 #                                     Tests                                  #
 #                                                                            #
@@ -307,3 +346,24 @@ def test_ckan_url_is_string(ckan, data, result):
     expected_url = '{0}/dataset/{1}'.format(ckan.BASE_URL, data['name'])
     assert dataset.extras['remote_url'] == expected_url
     assert dataset.extras['ckan:source'] == data['url']
+
+
+@pytest.mark.ckan_data('frequency_as_rdf_uri')
+def test_can_parse_frequency_as_uri(result, kwargs):
+    dataset = dataset_for(result)
+    assert dataset.frequency == kwargs['expected']
+    assert dataset.extras.get('ckan:frequency') is None
+
+
+@pytest.mark.ckan_data('frequency_as_exact_match')
+def test_can_parse_frequency_as_exact_match(result, kwargs):
+    dataset = dataset_for(result)
+    assert dataset.frequency == kwargs['expected']
+    assert dataset.extras.get('ckan:frequency') is None
+
+
+@pytest.mark.ckan_data('frequency_as_unknown_value')
+def test_can_parse_frequency_as_unkown_value(result, kwargs):
+    dataset = dataset_for(result)
+    assert dataset.extras['ckan:frequency'] == kwargs['expected']
+    assert dataset.frequency is None
