@@ -4,7 +4,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: udata/circleci
+      - image: udata/circleci:py3
       - image: mongo:3.2
       - image: redis
       - image: udata/elasticsearch:2.4.5
@@ -48,7 +48,7 @@ jobs:
       - run:
           name: Install python dependencies
           command: |
-            virtualenv venv
+            virtualenv -ppython3.6 venv
             source venv/bin/activate
             pip install -r requirements/develop.pip || pip install -r requirements/develop.pip
       - save_cache:
@@ -94,7 +94,7 @@ jobs:
 
   publish:
     docker:
-      - image: udata/circleci
+      - image: udata/circleci:py3
     steps:
       - attach_workspace:
           at: .
@@ -107,7 +107,7 @@ jobs:
 
   github:
     docker:
-      - image: udata/circleci
+      - image: udata/circleci:py3
     environment:
        BASH_ENV: /root/.bashrc
     steps:

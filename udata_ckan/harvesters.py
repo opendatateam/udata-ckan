@@ -1,12 +1,9 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
 import json
 import logging
 
 from datetime import datetime
 from uuid import UUID
-from urlparse import urljoin
+from urllib.parse import urljoin
 
 from voluptuous import (
     Schema, All, Any, Lower, Coerce, DefaultTo
@@ -36,72 +33,72 @@ RESOURCE_TYPES = ('file', 'file.upload', 'api', 'documentation',
 ALLOWED_RESOURCE_TYPES = ('file', 'file.upload', 'api', 'metadata')
 
 resource = {
-    'id': basestring,
+    'id': str,
     'position': int,
-    'name': All(DefaultTo(''), basestring),
-    'description': All(basestring, normalize_string),
-    'format': All(basestring, Lower),
-    'mimetype': Any(All(basestring, Lower), None),
+    'name': All(DefaultTo(''), str),
+    'description': All(str, normalize_string),
+    'format': All(str, Lower),
+    'mimetype': Any(All(str, Lower), None),
     'size': Any(Coerce(int), None),
-    'hash': Any(All(basestring, hash), None),
-    'created': All(basestring, to_date),
-    'last_modified': Any(All(basestring, to_date), None),
-    'url': All(basestring, is_url()),
+    'hash': Any(All(str, hash), None),
+    'created': All(str, to_date),
+    'last_modified': Any(All(str, to_date), None),
+    'url': All(str, is_url()),
     'resource_type': All(empty_none,
                          DefaultTo('file'),
-                         basestring,
+                         str,
                          Any(*RESOURCE_TYPES)
                          ),
 }
 
 tag = {
-    'id': basestring,
-    'vocabulary_id': Any(basestring, None),
-    'display_name': basestring,
-    'name': All(basestring, normalize_tag),
-    'state': basestring,
+    'id': str,
+    'vocabulary_id': Any(str, None),
+    'display_name': str,
+    'name': All(str, normalize_tag),
+    'state': str,
 }
 
 organization = {
-    'id': basestring,
-    'description': basestring,
-    'created': All(basestring, to_date),
-    'title': basestring,
-    'name': All(basestring, slug),
-    'revision_timestamp': All(basestring, to_date),
+    'id': str,
+    'description': str,
+    'created': All(str, to_date),
+    'title': str,
+    'name': All(str, slug),
+    'revision_timestamp': All(str, to_date),
     'is_organization': boolean,
-    'state': basestring,
-    'image_url': basestring,
-    'revision_id': basestring,
+    'state': str,
+    'image_url': str,
+    'revision_id': str,
     'type': 'organization',
     'approval_status': 'approved'
 }
 
 schema = Schema({
-    'id': basestring,
-    'name': basestring,
-    'title': basestring,
-    'notes': Any(All(basestring, normalize_string), None),
-    'license_id': All(DefaultTo('not-specified'), basestring),
-    'license_title': Any(basestring, None),
+    'id': str,
+    'name': str,
+    'title': str,
+    'notes': Any(All(str, normalize_string), None),
+    'license_id': All(DefaultTo('not-specified'), str),
+    'license_title': Any(str, None),
     'tags': [tag],
 
-    'metadata_created': All(basestring, to_date),
-    'metadata_modified': All(basestring, to_date),
+    'metadata_created': All(str, to_date),
+    'metadata_modified': All(str, to_date),
     'organization': Any(organization, None),
     'resources': [resource],
-    'revision_id': basestring,
+    'revision_id': str,
     'extras': [{
-        'key': basestring,
-        'value': Any(basestring, int, float, boolean, dict, list),
+        'key': str,
+        'value': Any(str, int, float, boolean, dict, list),
     }],
     'private': boolean,
     'type': 'dataset',
-    'author': Any(basestring, None),
-    'author_email': All(empty_none, Any(All(basestring, email), None)),
-    'maintainer': Any(basestring, None),
-    'maintainer_email': All(empty_none, Any(All(basestring, email), None)),
-    'state': Any(basestring, None),
+    'author': Any(str, None),
+    'author_email': All(empty_none, Any(All(str, email), None)),
+    'maintainer': Any(str, None),
+    'maintainer_email': All(empty_none, Any(All(str, email), None)),
+    'state': Any(str, None),
 }, required=True, extra=True)
 
 
@@ -207,7 +204,7 @@ class CkanBackend(BaseBackend):
             key = extra['key']
             value = extra['value']
             if value is None or (
-                isinstance(value, basestring) and not value.strip()
+                isinstance(value, str) and not value.strip()
             ):
                 # Skip empty extras
                 continue

@@ -1,12 +1,9 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
 import json
 import pytest
 import re
 import requests
 
-from urlparse import urljoin
+from urllib.parse import urljoin
 
 from faker.providers import BaseProvider
 from udata.utils import faker_provider, faker
