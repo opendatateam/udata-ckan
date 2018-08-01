@@ -155,7 +155,10 @@ class CkanBackend(BaseBackend):
             # use q parameters because fq is broken with multiple filters
             params = []
             for f in filters:
-                params.append('{key}:{value}'.format(**f))
+                param = '{key}:{value}'.format(**f)
+                if f.get('type') == 'exclude':
+                    param = '-' + param
+                params.append(param)
             q = ' AND '.join(params)
             response = self.get_action('package_search', fix=fix, q=q)
             names = [r['name'] for r in response['result']['results']]

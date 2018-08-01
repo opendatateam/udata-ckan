@@ -2,7 +2,7 @@
 
 ## Current (in progress)
 
-- Nothing yet
+- Support both inclusion and exclusion filters
 
 ## 1.1.1 (2018-06-15)
 
