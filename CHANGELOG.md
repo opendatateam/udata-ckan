@@ -2,7 +2,7 @@
 
 ## Current (in progress)
 
-- Support both inclusion and exclusion filters
+- Support both inclusion and exclusion filters [#42](https://github.com/opendatateam/udata-ckan/pull/42)
 
 ## 1.1.1 (2018-06-15)
 
