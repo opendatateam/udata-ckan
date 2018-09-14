@@ -112,6 +112,7 @@ setup(
     author_email='udata@opendata.team',
     packages=['udata_ckan'],
     include_package_data=True,
+    python_requires='==2.7.*',
     install_requires=install_requires,
     tests_require=tests_require,
     extras_require={
