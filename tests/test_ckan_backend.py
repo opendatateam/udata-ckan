@@ -69,7 +69,7 @@ def feed_ckan_and_harvest(request, source, ckan, app):
     items = [item for item in session.items if item.module == module]
     rundata = {}
 
-    fixtures = set([i.get_marker('ckan_data').args[0] for i in items])
+    fixtures = {i.get_marker('ckan_data').args[0] for i in items if i.get_marker('ckan_data')}
 
     for fixture in fixtures:
         values = request.getfixturevalue(fixture)
@@ -92,7 +92,7 @@ def feed_ckan_and_harvest(request, source, ckan, app):
 
 @pytest.fixture
 def data_name(request):
-    marker = request.node.get_marker('ckan_data')
+    marker = request.node.get_closest_marker('ckan_data')
     return marker.args[0]
 
 
@@ -501,3 +501,49 @@ def test_keep_unknown_spatial_uri_as_extra(result, kwargs):
     dataset = dataset_for(result)
     assert dataset.extras['ckan:spatial-uri'] == kwargs['spatial']
     assert dataset.spatial is None
+
+
+##############################################################################
+#                       Edge cases manually written                          #
+##############################################################################
+def test_minimal_ckan_response(rmock):
+    '''CKAN Harvester should accept the minimum dataset payload'''
+    CKAN_URL = 'https://harvest.me/'
+    API_URL = '{}api/3/action/'.format(CKAN_URL)
+    PACKAGE_LIST_URL = '{}package_list'.format(API_URL)
+    PACKAGE_SHOW_URL = '{}package_show'.format(API_URL)
+
+    name = faker.unique_string()
+    json = {
+        'success': True,
+        'result': {
+            'id': faker.uuid4(),
+            'name': name,
+            'title': faker.sentence(),
+            'maintainer': faker.name(),
+            'tags': [],
+            'private': False,
+            'maintainer_email': faker.email(),
+            'license_id': None,
+            'metadata_created': faker.iso8601(),
+            'organization': None,
+            'metadata_modified': faker.iso8601(),
+            'author': None,
+            'author_email': None,
+            'notes': faker.paragraph(),
+            'license_title': None,
+            'state': None,
+            'revision_id': faker.unique_string(),
+            'type': 'dataset',
+            'resources': [],
+            # extras is not always present so we exclude it from the minimal payload
+        }
+    }
+    source = HarvestSourceFactory(backend='ckan', url=CKAN_URL)
+    rmock.get(PACKAGE_LIST_URL, json={'result': [name]}, status_code=200,
+              headers={'Content-Type': 'application/json'})
+    rmock.get(PACKAGE_SHOW_URL, json=json, status_code=200,
+              headers={'Content-Type': 'application/json'})
+    actions.run(source.slug)
+    source.reload()
+    assert source.get_last_job().status == 'done'

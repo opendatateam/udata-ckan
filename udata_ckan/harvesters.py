@@ -9,7 +9,7 @@ from uuid import UUID
 from urlparse import urljoin
 
 from voluptuous import (
-    Schema, All, Any, Lower, Coerce, DefaultTo
+    Schema, All, Any, Lower, Coerce, DefaultTo, Optional
 )
 
 from udata import uris
@@ -91,7 +91,7 @@ schema = Schema({
     'organization': Any(organization, None),
     'resources': [resource],
     'revision_id': basestring,
-    'extras': [{
+    Optional('extras', default=list): [{
         'key': basestring,
         'value': Any(basestring, int, float, boolean, dict, list),
     }],

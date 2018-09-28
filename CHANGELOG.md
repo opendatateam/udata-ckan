@@ -4,6 +4,7 @@
 
 - Support both inclusion and exclusion filters [#42](https://github.com/opendatateam/udata-ckan/pull/42)
 - Localization support [#43](https://github.com/opendatateam/udata-ckan/pull/43)
+- Test the minimum accepted CKAN dataset payload and make the `extras` property optional [#57](https://github.com/opendatateam/udata-ckan/pull/57)
 
 ## 1.1.1 (2018-06-15)
 
