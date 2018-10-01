@@ -160,7 +160,7 @@ class CkanBackend(BaseBackend):
         elif mime_type == 'text/html':  # Standard html error page
             raise HarvestException('Unknown Error: {} returned HTML'.format(url))
         else:
-            # If it's not HTML, CKAN response with raw quoted test
+            # If it's not HTML, CKAN respond with raw quoted text
             msg = response.text.strip('"')
             raise HarvestException(msg)
 
