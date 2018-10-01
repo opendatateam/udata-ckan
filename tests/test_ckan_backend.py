@@ -540,7 +540,7 @@ def test_minimal_ckan_response(rmock):
         }
     }
     source = HarvestSourceFactory(backend='ckan', url=CKAN_URL)
-    rmock.get(PACKAGE_LIST_URL, json={'result': [name]}, status_code=200,
+    rmock.get(PACKAGE_LIST_URL, json={'success': True, 'result': [name]}, status_code=200,
               headers={'Content-Type': 'application/json'})
     rmock.get(PACKAGE_SHOW_URL, json=json, status_code=200,
               headers={'Content-Type': 'application/json'})

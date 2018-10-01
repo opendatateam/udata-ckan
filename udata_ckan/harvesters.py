@@ -134,10 +134,35 @@ class CkanBackend(BaseBackend):
             response = self.post(url, '{}', params=kwargs)
         else:
             response = self.get(url, params=kwargs)
-        if response.status_code != 200:
+
+        content_type = response.headers.get('Content-Type', '')
+        mime_type = content_type.split(';', 1)[0]
+
+        if mime_type == 'application/json':  # Standard API JSON response
+            data = response.json()
+            # CKAN API always returns 200 even on errors
+            # Only the `success` property allows to detect errors
+            if data.get('success', False):
+                return data
+            else:
+                error = data.get('error')
+                if isinstance(error, dict):
+                    # Error object with message
+                    msg = error.get('message', 'Unknown error')
+                    if '__type' in error:
+                        # Typed error
+                        msg = ': '.join((error['__type'], msg))
+                else:
+                    # Error only contains a message
+                    msg = error
+                raise HarvestException(msg)
+
+        elif mime_type == 'text/html':  # Standard html error page
+            raise HarvestException('Unknown Error: {} returned HTML'.format(url))
+        else:
+            # If it's not HTML, CKAN respond with raw quoted text
             msg = response.text.strip('"')
             raise HarvestException(msg)
-        return response.json()
 
     def get_status(self):
         url = urljoin(self.source.url, '/api/util/status')
