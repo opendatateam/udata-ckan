@@ -1,5 +1,9 @@
 # Changelog
 
+## Current (in progress)
+
+- Nothing yet
+
 ## 1.2.0 (2018-10-02)
 
 - Support both inclusion and exclusion filters [#42](https://github.com/opendatateam/udata-ckan/pull/42)
