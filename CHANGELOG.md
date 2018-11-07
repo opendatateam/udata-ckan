@@ -4,6 +4,13 @@
 
 - Migrate to python3 🐍 [#34](https://github.com/opendatateam/udata-ckan/pull/34)
 
+## 1.2.0 (2018-10-02)
+
+- Support both inclusion and exclusion filters [#42](https://github.com/opendatateam/udata-ckan/pull/42)
+- Localization support [#43](https://github.com/opendatateam/udata-ckan/pull/43)
+- Test the minimum accepted CKAN dataset payload and make the `extras` property optional [#57](https://github.com/opendatateam/udata-ckan/pull/57)
+- Improved error handling (support details in JSON responses, also handle raw quoted strings and HTML) [#56](https://github.com/opendatateam/udata-ckan/pull/56)
+
 ## 1.1.1 (2018-06-15)
 
 - Only store `url` field in `remote_url` extra if this is an URL otherwise store it in `ckan:source` [#30](https://github.com/opendatateam/udata-ckan/pull/30)

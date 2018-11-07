@@ -11,6 +11,8 @@ from udata.utils import faker_provider, faker
 RE_API_KEY = re.compile(r'apikey=(?P<apikey>[a-f0-9-]+)\s')
 CKAN_URL = 'http://localhost:5000'
 PASTER_URL = 'http://localhost:8000'
+CKAN_WAIT_TIMEOUT = 120  # Max time to wait for CKAN being ready (in seconds)
+PASTER_TIMEOUT = 100  # Max time to wait for paster API calls (in seconds)
 
 
 class CkanError(ValueError):
@@ -60,7 +62,7 @@ class PasterClient(object):
     URL = PASTER_URL
 
     def __call__(self, cmd):
-        response = requests.post(self.URL, data=cmd, timeout=100)
+        response = requests.post(self.URL, data=cmd, timeout=PASTER_TIMEOUT)
         if response.status_code != 200:
             raise PasterError(response.text.strip())
         return response.text
@@ -71,7 +73,7 @@ def wait_for_ckan():
     print('waiting for CKAN')
     while True:
         try:
-            requests.get(CKAN_URL, timeout=5)
+            requests.get(CKAN_URL, timeout=CKAN_WAIT_TIMEOUT)
             print('CKAN is ready')
             return
         except requests.exceptions.Timeout:
