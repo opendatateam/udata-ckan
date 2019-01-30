@@ -246,7 +246,7 @@ class CkanBackend(BaseBackend):
                 # Textual representation of the extent / location
                 qs = GeoZone.objects(db.Q(name=value) | db.Q(slug=value))
                 qs = qs.valid_at(datetime.now())
-                if qs.count() is 1:
+                if qs.count() == 1:
                     spatial_zone = qs.first()
                 else:
                     dataset.extras['ckan:spatial-text'] = value
