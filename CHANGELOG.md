@@ -2,7 +2,7 @@
 
 ## Current (in progress)
 
-- Nothing yet
+- Fix filetype (always remote) [#98](https://github.com/opendatateam/udata-ckan/pull/98)
 
 ## 1.2.0 (2018-10-02)
 
