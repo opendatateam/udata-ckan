@@ -2,7 +2,7 @@
 
 ## Current (in progress)
 
-- Nothing yet
+- Max out package_search rows limit [#100](https://github.com/opendatateam/udata-ckan/pull/98)
 
 ## 1.2.1 (2019-05-24)
 
