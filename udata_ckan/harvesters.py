@@ -323,8 +323,7 @@ class CkanBackend(BaseBackend):
             resource.title = res.get('name', '') or ''
             resource.description = res.get('description')
             resource.url = res['url']
-            resource.filetype = ('api' if res['resource_type'] == 'api'
-                                 else 'remote')
+            resource.filetype = 'remote'
             resource.format = res.get('format')
             resource.mime = res.get('mimetype')
             resource.hash = res.get('hash')
