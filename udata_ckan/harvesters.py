@@ -185,7 +185,9 @@ class CkanBackend(BaseBackend):
                     param = '-' + param
                 params.append(param)
             q = ' AND '.join(params)
-            response = self.get_action('package_search', fix=fix, q=q)
+            # max out rows count to 1000 as per
+            # https://docs.ckan.org/en/latest/api/#ckan.logic.action.get.package_search
+            response = self.get_action('package_search', fix=fix, q=q, rows=1000)
             names = [r['name'] for r in response['result']['results']]
         else:
             response = self.get_action('package_list', fix=fix)
