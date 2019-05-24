@@ -1,5 +1,9 @@
 # Changelog
 
+## Current (in progress)
+
+- Nothing yet
+
 ## 1.2.1 (2019-05-24)
 
 - Fix filetype (always remote) [#98](https://github.com/opendatateam/udata-ckan/pull/98)
