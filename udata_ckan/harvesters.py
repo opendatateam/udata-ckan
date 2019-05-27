@@ -301,13 +301,14 @@ class CkanBackend(BaseBackend):
             )
 
         # Remote URL
+        dataset.extras['remote_url'] = self.dataset_url(data['name'])
         if data.get('url'):
             try:
                 url = uris.validate(data['url'])
             except uris.ValidationError:
-                dataset.extras['remote_url'] = self.dataset_url(data['name'])
                 dataset.extras['ckan:source'] = data['url']
             else:
+                # use declared `url` as `remote_url` if any
                 dataset.extras['remote_url'] = url
 
         # Resources

@@ -2,7 +2,7 @@
 
 ## Current (in progress)
 
-- Nothing yet
+- Always fill extras.remote_url [#103](https://github.com/opendatateam/udata-ckan/pull/103)
 
 ## 1.2.2 (2019-05-24)
 
