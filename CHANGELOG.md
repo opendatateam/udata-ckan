@@ -1,6 +1,6 @@
 # Changelog
 
-## Current (in progress)
+## 1.2.3 (2019-05-29)
 
 - Always fill extras.remote_url [#103](https://github.com/opendatateam/udata-ckan/pull/103)
 
