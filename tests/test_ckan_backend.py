@@ -66,7 +66,10 @@ def feed_ckan_and_harvest(request, source, ckan, app):
     items = [item for item in session.items if item.module == module]
     rundata = {}
 
-    fixtures = {i.get_marker('ckan_data').args[0] for i in items if i.get_marker('ckan_data')}
+    fixtures = {
+        i.get_closest_marker('ckan_data').args[0]
+        for i in items if i.get_closest_marker('ckan_data')
+    }
 
     for fixture in fixtures:
         values = request.getfixturevalue(fixture)

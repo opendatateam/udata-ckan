@@ -4,6 +4,18 @@
 
 - Migrate to python3 🐍 [#34](https://github.com/opendatateam/udata-ckan/pull/34)
 
+## 1.2.3 (2019-05-29)
+
+- Always fill extras.remote_url [#103](https://github.com/opendatateam/udata-ckan/pull/103)
+
+## 1.2.2 (2019-05-24)
+
+- Max out package_search rows limit [#100](https://github.com/opendatateam/udata-ckan/pull/98)
+
+## 1.2.1 (2019-05-24)
+
+- Fix filetype (always remote) [#98](https://github.com/opendatateam/udata-ckan/pull/98)
+
 ## 1.2.0 (2018-10-02)
 
 - Support both inclusion and exclusion filters [#42](https://github.com/opendatateam/udata-ckan/pull/42)

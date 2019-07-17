@@ -182,7 +182,9 @@ class CkanBackend(BaseBackend):
                     param = '-' + param
                 params.append(param)
             q = ' AND '.join(params)
-            response = self.get_action('package_search', fix=fix, q=q)
+            # max out rows count to 1000 as per
+            # https://docs.ckan.org/en/latest/api/#ckan.logic.action.get.package_search
+            response = self.get_action('package_search', fix=fix, q=q, rows=1000)
             names = [r['name'] for r in response['result']['results']]
         else:
             response = self.get_action('package_list', fix=fix)
@@ -243,7 +245,7 @@ class CkanBackend(BaseBackend):
                 # Textual representation of the extent / location
                 qs = GeoZone.objects(db.Q(name=value) | db.Q(slug=value))
                 qs = qs.valid_at(datetime.now())
-                if qs.count() is 1:
+                if qs.count() == 1:
                     spatial_zone = qs.first()
                 else:
                     dataset.extras['ckan:spatial-text'] = value
@@ -296,13 +298,14 @@ class CkanBackend(BaseBackend):
             )
 
         # Remote URL
+        dataset.extras['remote_url'] = self.dataset_url(data['name'])
         if data.get('url'):
             try:
                 url = uris.validate(data['url'])
             except uris.ValidationError:
-                dataset.extras['remote_url'] = self.dataset_url(data['name'])
                 dataset.extras['ckan:source'] = data['url']
             else:
+                # use declared `url` as `remote_url` if any
                 dataset.extras['remote_url'] = url
 
         # Resources
@@ -320,8 +323,7 @@ class CkanBackend(BaseBackend):
             resource.title = res.get('name', '') or ''
             resource.description = res.get('description')
             resource.url = res['url']
-            resource.filetype = ('api' if res['resource_type'] == 'api'
-                                 else 'remote')
+            resource.filetype = 'remote'
             resource.format = res.get('format')
             resource.mime = res.get('mimetype')
             resource.hash = res.get('hash')
