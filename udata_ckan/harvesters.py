@@ -8,13 +8,10 @@ from datetime import datetime
 from uuid import UUID
 from urlparse import urljoin
 
-from voluptuous import (
-    Schema, All, Any, Lower, Coerce, DefaultTo, Optional
-)
-
 from udata import uris
 from udata.i18n import lazy_gettext as _
 from udata.core.dataset.rdf import frequency_from_rdf
+from udata.frontend.markdown import parse_html
 from udata.models import (
     db, Resource, License, SpatialCoverage, GeoZone,
     UPDATE_FREQUENCIES,
@@ -23,86 +20,13 @@ from udata.utils import get_by, daterange_start, daterange_end
 
 from udata.harvest.backends.base import BaseBackend, HarvestFilter
 from udata.harvest.exceptions import HarvestException, HarvestSkipException
-from udata.harvest.filters import (
-    boolean, email, to_date, slug, normalize_tag, normalize_string,
-    is_url, empty_none, hash
-)
+
+from .schemas import schema, dkan_schema
 
 log = logging.getLogger(__name__)
 
-RESOURCE_TYPES = ('file', 'file.upload', 'api', 'documentation',
-                  'image', 'visualization')
-
-ALLOWED_RESOURCE_TYPES = ('file', 'file.upload', 'api', 'metadata')
-
-resource = {
-    'id': basestring,
-    'position': int,
-    'name': All(DefaultTo(''), basestring),
-    'description': All(basestring, normalize_string),
-    'format': All(basestring, Lower),
-    'mimetype': Any(All(basestring, Lower), None),
-    'size': Any(Coerce(int), None),
-    'hash': Any(All(basestring, hash), None),
-    'created': All(basestring, to_date),
-    'last_modified': Any(All(basestring, to_date), None),
-    'url': All(basestring, is_url()),
-    'resource_type': All(empty_none,
-                         DefaultTo('file'),
-                         basestring,
-                         Any(*RESOURCE_TYPES)
-                         ),
-}
-
-tag = {
-    'id': basestring,
-    'vocabulary_id': Any(basestring, None),
-    'display_name': basestring,
-    'name': All(basestring, normalize_tag),
-    'state': basestring,
-}
-
-organization = {
-    'id': basestring,
-    'description': basestring,
-    'created': All(basestring, to_date),
-    'title': basestring,
-    'name': All(basestring, slug),
-    'revision_timestamp': All(basestring, to_date),
-    'is_organization': boolean,
-    'state': basestring,
-    'image_url': basestring,
-    'revision_id': basestring,
-    'type': 'organization',
-    'approval_status': 'approved'
-}
-
-schema = Schema({
-    'id': basestring,
-    'name': basestring,
-    'title': basestring,
-    'notes': Any(All(basestring, normalize_string), None),
-    'license_id': All(DefaultTo('not-specified'), basestring),
-    'license_title': Any(basestring, None),
-    'tags': [tag],
-
-    'metadata_created': All(basestring, to_date),
-    'metadata_modified': All(basestring, to_date),
-    'organization': Any(organization, None),
-    'resources': [resource],
-    'revision_id': basestring,
-    Optional('extras', default=list): [{
-        'key': basestring,
-        'value': Any(basestring, int, float, boolean, dict, list),
-    }],
-    'private': boolean,
-    'type': 'dataset',
-    'author': Any(basestring, None),
-    'author_email': All(empty_none, Any(All(basestring, email), None)),
-    'maintainer': Any(basestring, None),
-    'maintainer_email': All(empty_none, Any(All(basestring, email), None)),
-    'state': Any(basestring, None),
-}, required=True, extra=True)
+# dkan is a dummy value for dkan that does not provide resource_type
+ALLOWED_RESOURCE_TYPES = ('dkan', 'file', 'file.upload', 'api', 'metadata')
 
 
 class CkanBackend(BaseBackend):
@@ -112,6 +36,7 @@ class CkanBackend(BaseBackend):
                       _('A CKAN Organization name')),
         HarvestFilter(_('Tag'), 'tags', str, _('A CKAN tag name')),
     )
+    schema = schema
 
     def get_headers(self):
         headers = super(CkanBackend, self).get_headers()
@@ -199,7 +124,10 @@ class CkanBackend(BaseBackend):
 
     def process(self, item):
         response = self.get_action('package_show', id=item.remote_id)
-        data = self.validate(response['result'], schema)
+        data = self.validate(response['result'], self.schema)
+
+        if type(data) == list:
+            data = data[0]
 
         # Fix the remote_id: use real ID instead of not stable name
         item.remote_id = data['id']
@@ -215,7 +143,7 @@ class CkanBackend(BaseBackend):
         if not dataset.slug:
             dataset.slug = data['name']
         dataset.title = data['title']
-        dataset.description = data['notes']
+        dataset.description = parse_html(data['notes'])
 
         # Detect license
         default_license = dataset.license or License.default()
@@ -335,3 +263,7 @@ class CkanBackend(BaseBackend):
             resource.published = resource.published or resource.created
 
         return dataset
+
+
+class DkanBackend(CkanBackend):
+    schema = dkan_schema
