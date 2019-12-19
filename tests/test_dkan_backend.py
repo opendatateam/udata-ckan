@@ -99,3 +99,4 @@ def test_dkan_french_w_license(app, rmock):
     assert dataset.created_at == datetime(2019, 12, 10, 0, 0)
     assert dataset.last_modified == datetime(2019, 9, 30, 0, 0)
     assert len(dataset.resources) == 2
+    assert 'xlsx' in [r.format for r in dataset.resources]
