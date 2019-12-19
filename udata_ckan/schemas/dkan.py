@@ -38,9 +38,9 @@ def to_date(value):
 
 
 def dkan_parse_size(value):
-    # not strictly true but should be enough
-    value = value.replace('octets', 'bytes')
     if value:
+        # not strictly true but should be enough
+        value = value.replace('octets', 'bytes')
         return parse_size(value)
 
 
