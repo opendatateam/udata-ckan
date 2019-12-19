@@ -253,7 +253,7 @@ class CkanBackend(BaseBackend):
                 resource = Resource(id=res['id'])
                 dataset.resources.append(resource)
             resource.title = res.get('name', '') or ''
-            resource.description = res.get('description')
+            resource.description = parse_html(res.get('description'))
             resource.url = res['url']
             resource.filetype = 'remote'
             resource.format = res.get('format')
