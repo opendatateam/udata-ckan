@@ -21,7 +21,8 @@ from udata.utils import get_by, daterange_start, daterange_end
 from udata.harvest.backends.base import BaseBackend, HarvestFilter
 from udata.harvest.exceptions import HarvestException, HarvestSkipException
 
-from .schemas import schema, dkan_schema
+from .schemas.ckan import schema as ckan_schema
+from .schemas.dkan import schema as dkan_schema
 
 log = logging.getLogger(__name__)
 
@@ -36,7 +37,7 @@ class CkanBackend(BaseBackend):
                       _('A CKAN Organization name')),
         HarvestFilter(_('Tag'), 'tags', str, _('A CKAN tag name')),
     )
-    schema = schema
+    schema = ckan_schema
 
     def get_headers(self):
         headers = super(CkanBackend, self).get_headers()
