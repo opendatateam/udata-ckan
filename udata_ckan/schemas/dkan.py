@@ -1,22 +1,45 @@
+import dateutil.parser
 from humanfriendly import parse_size
 from voluptuous import (
     Schema, All, Any, Lower, DefaultTo, Optional
 )
+
 from udata.harvest.filters import (
-    boolean, email, to_date, slug, normalize_string,
+    boolean, email, slug, normalize_string,
     is_url, empty_none, hash
 )
 
 from .ckan import RESOURCE_TYPES, tag
 
 
-def dkan_to_date(value):
-    value = value.replace('Date changed  ', '')
-    return to_date(value)
+class FrenchParserInfo(dateutil.parser.parserinfo):
+    WEEKDAYS = [('Lun', 'Lundi'),
+                ('Mar', 'Mardi'),
+                ('Mer', 'Mercredi'),
+                ('Jeu', 'Jeudi'),
+                ('Ven', 'Vendredi'),
+                ('Sam', 'Samedi'),
+                ('Dim', 'Dimanche')]
+
+
+def parse_date(value, **kwargs):
+    return dateutil.parser.parse(value, **kwargs).date()
+
+
+def to_date(value):
+    '''
+    Try w/ french weekdays then dateutil's default
+    `fuzzy` is used when 'Date changed' is in the value
+    '''
+    try:
+        return parse_date(value, fuzzy=True, parserinfo=FrenchParserInfo(), dayfirst=True)
+    except ValueError:
+        return parse_date(value, fuzzy=True)
 
 
 def dkan_parse_size(value):
-    return parse_size(value)
+    if value:
+        return parse_size(value)
 
 
 resource = {
@@ -28,7 +51,7 @@ resource = {
     'size': All(basestring, dkan_parse_size),
     Optional('hash'): Any(All(basestring, hash), None),
     'created': All(basestring, to_date),
-    'last_modified': Any(All(basestring, dkan_to_date), None),
+    'last_modified': Any(All(basestring, to_date), None),
     'url': All(basestring, is_url()),
     Optional('resource_type', default='dkan'): All(
         empty_none,
