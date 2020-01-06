@@ -2,7 +2,7 @@
 
 ## Current (in progress)
 
-- Nothing yet
+- DKAN support [#129](https://github.com/opendatateam/udata-ckan/pull/129)
 
 ## 1.2.3 (2019-05-29)
 
