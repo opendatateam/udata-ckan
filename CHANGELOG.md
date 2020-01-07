@@ -4,6 +4,10 @@
 
 - Migrate to python3 🐍 [#34](https://github.com/opendatateam/udata-ckan/pull/34)
 
+## 1.3.0 (2020-01-06)
+
+- DKAN support [#129](https://github.com/opendatateam/udata-ckan/pull/129)
+
 ## 1.2.3 (2019-05-29)
 
 - Always fill extras.remote_url [#103](https://github.com/opendatateam/udata-ckan/pull/103)

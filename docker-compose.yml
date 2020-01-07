@@ -22,7 +22,7 @@ services:
       - POSTGRES_PASSWORD=ckan
       - DS_RO_PASS=datastore
   db:
-    image: postgres:alpine
+    image: postgres:11-alpine
     environment:
       - POSTGRES_DB=ckan
       - POSTGRES_USER=ckan

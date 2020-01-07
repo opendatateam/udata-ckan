@@ -119,6 +119,7 @@ setup(
     entry_points={
         'udata.harvesters': [
             'ckan = udata_ckan.harvesters:CkanBackend',
+            'dkan = udata_ckan.harvesters:DkanBackend',
         ],
         'udata.models': [
             'ckan = udata_ckan.models',

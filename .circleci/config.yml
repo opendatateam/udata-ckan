@@ -8,7 +8,7 @@ jobs:
       - image: mongo:3.2
       - image: redis
       - image: udata/elasticsearch:2.4.5
-      - image: postgres:alpine
+      - image: postgres:11-alpine
         name: db
         environment:
           POSTGRES_DB: ckan
