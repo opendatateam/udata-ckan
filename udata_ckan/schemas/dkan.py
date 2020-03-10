@@ -57,9 +57,7 @@ resource = {
     'url': All(str, is_url()),
     Optional('resource_type', default='dkan'): All(
         empty_none,
-        DefaultTo('file'),
         str,
-        Any(*RESOURCE_TYPES)
     ),
 }
 
