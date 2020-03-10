@@ -9,7 +9,7 @@ from udata.harvest.filters import (
     is_url, empty_none, hash
 )
 
-from .ckan import RESOURCE_TYPES, tag
+from .ckan import tag
 
 
 class FrenchParserInfo(dateutil.parser.parserinfo):
