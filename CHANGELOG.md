@@ -2,7 +2,7 @@
 
 ## Current (in progress)
 
-- Nothing yet
+- Migrate to python3 🐍 [#110](https://github.com/opendatateam/udata-ckan/pull/110)
 
 ## 1.3.0 (2020-01-06)
 

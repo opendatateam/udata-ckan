@@ -1,12 +1,9 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
 import json
 import logging
 
 from datetime import datetime
 from uuid import UUID
-from urlparse import urljoin
+from urllib.parse import urljoin
 
 from udata import uris
 from udata.i18n import lazy_gettext as _
@@ -166,7 +163,7 @@ class CkanBackend(BaseBackend):
             key = extra['key']
             value = extra['value']
             if value is None or (
-                isinstance(value, basestring) and not value.strip()
+                isinstance(value, str) and not value.strip()
             ):
                 # Skip empty extras
                 continue
