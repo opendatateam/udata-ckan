@@ -43,11 +43,11 @@ organization = {
     'created': All(str, to_date),
     'title': str,
     'name': All(str, slug),
-    'revision_timestamp': All(str, to_date),
+    Optional('revision_timestamp'): All(str, to_date),
     'is_organization': boolean,
     'state': str,
     'image_url': str,
-    'revision_id': str,
+    Optional('revision_id'): str,
     'type': 'organization',
     'approval_status': 'approved'
 }
