@@ -2,7 +2,7 @@
 
 ## Current (in progress)
 
-- Nothing yet
+- Replace mongo legacy image in CI [#219](https://github.com/opendatateam/udata-ckan/pull/219)
 
 ## 2.0.0 (2020-03-11)
 
