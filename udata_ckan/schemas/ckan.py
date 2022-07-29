@@ -65,7 +65,7 @@ schema = Schema({
     'metadata_modified': All(str, to_date),
     'organization': Any(organization, None),
     'resources': [resource],
-    'revision_id': str,
+    Optional('revision_id'): str,
     Optional('extras', default=list): [{
         'key': str,
         'value': Any(str, int, float, boolean, dict, list),
