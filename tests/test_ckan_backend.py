@@ -533,10 +533,9 @@ def test_minimal_ckan_response(rmock):
             'notes': faker.paragraph(),
             'license_title': None,
             'state': None,
-            'revision_id': faker.unique_string(),
             'type': 'dataset',
             'resources': [],
-            # extras is not always present so we exclude it from the minimal payload
+            # extras and revision_id are not always present so we exclude them from the minimal payload
         }
     }
     source = HarvestSourceFactory(backend='ckan', url=CKAN_URL)
