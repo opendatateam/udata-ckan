@@ -7,6 +7,7 @@ from urllib.parse import urljoin
 
 from udata import uris
 from udata.i18n import lazy_gettext as _
+from udata.core.dataset.models import HarvestDatasetMetadata
 from udata.core.dataset.rdf import frequency_from_rdf
 from udata.frontend.markdown import parse_html
 from udata.models import (
@@ -137,6 +138,9 @@ class CkanBackend(BaseBackend):
 
         dataset = self.get_dataset(item.remote_id)
 
+        if not dataset.harvest:
+            dataset.harvest = HarvestDatasetMetadata()
+
         # Core attributes
         if not dataset.slug:
             dataset.slug = data['name']
@@ -154,7 +158,7 @@ class CkanBackend(BaseBackend):
         dataset.created_at = data['metadata_created']
         dataset.last_modified = data['metadata_modified']
 
-        dataset.extras['ckan:name'] = data['name']
+        dataset.harvest.ckan_name = data['name']
 
         temporal_start, temporal_end = None, None
         spatial_geom, spatial_zone = None, None
@@ -227,15 +231,15 @@ class CkanBackend(BaseBackend):
             )
 
         # Remote URL
-        dataset.extras['remote_url'] = self.dataset_url(data['name'])
+        dataset.harvest.remote_url = self.dataset_url(data['name'])
         if data.get('url'):
             try:
                 url = uris.validate(data['url'])
             except uris.ValidationError:
-                dataset.extras['ckan:source'] = data['url']
+                dataset.harvest.ckan_source = data['url']
             else:
                 # use declared `url` as `remote_url` if any
-                dataset.extras['remote_url'] = url
+                dataset.harvest.remote_url = url
 
         # Resources
         for res in data['resources']:

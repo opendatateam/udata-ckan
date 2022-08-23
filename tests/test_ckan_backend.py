@@ -119,8 +119,7 @@ def job_item_for(job, result):
 
 def dataset_for(result):
     '''Get the dataset associated to a given result'''
-    params = {'extras__harvest:remote_id': result['result']['id']}
-    return Dataset.objects(**params).first()
+    return Dataset.objects(harvest__remote_id=result['result']['id']).first()
 
 
 ##############################################################################
@@ -362,9 +361,9 @@ def test_minimal_metadata(data, result, kwargs):
     dataset = dataset_for(result)
     assert dataset.title == data['title']
     assert dataset.description == data['notes']
-    assert dataset.extras['harvest:remote_id'] == result['result']['id']
-    assert dataset.extras['harvest:domain'] == 'localhost'
-    assert dataset.extras['ckan:name'] == data['name']
+    assert dataset.harvest.remote_id == result['result']['id']
+    assert dataset.harvest.domain == 'localhost'
+    assert dataset.harvest.ckan_name == data['name']
     assert len(dataset.resources) == 1
 
     resource = dataset.resources[0]
@@ -380,9 +379,9 @@ def test_all_metadata(data, result):
     assert dataset.title == data['title']
     assert dataset.description == data['notes']
     assert set(dataset.tags) == set([t['name'] for t in data['tags']])
-    assert dataset.extras['harvest:remote_id'] == result['result']['id']
-    assert dataset.extras['harvest:domain'] == 'localhost'
-    assert dataset.extras['ckan:name'] == data['name']
+    assert dataset.harvest.remote_id == result['result']['id']
+    assert dataset.harvest.domain == 'localhost'
+    assert dataset.harvest.ckan_name == data['name']
     assert len(dataset.resources) == 1
 
     resource = dataset.resources[0]
@@ -425,16 +424,16 @@ def test_skip_no_resources(source, result):
 @pytest.mark.ckan_data('ckan_url_is_url')
 def test_ckan_url_is_url(data, result):
     dataset = dataset_for(result)
-    assert dataset.extras['remote_url'] == data['url']
-    assert 'ckan:source' not in dataset.extras
+    assert dataset.harvest.remote_url == data['url']
+    assert not hasattr(dataset.harvest, 'ckan_source')
 
 
 @pytest.mark.ckan_data('ckan_url_is_a_string')
 def test_ckan_url_is_string(ckan, data, result):
     dataset = dataset_for(result)
     expected_url = '{0}/dataset/{1}'.format(ckan.BASE_URL, data['name'])
-    assert dataset.extras['remote_url'] == expected_url
-    assert dataset.extras['ckan:source'] == data['url']
+    assert dataset.harvest.remote_url == expected_url
+    assert dataset.harvest.ckan_source == data['url']
 
 
 @pytest.mark.ckan_data('frequency_as_rdf_uri')

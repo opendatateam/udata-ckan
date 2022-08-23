@@ -52,7 +52,7 @@ def test_include_org_filter(ckan):
     assert len(job.items) == len(included_ids)
 
     for dataset in Dataset.objects:
-        assert dataset.extras['harvest:remote_id'] in included_ids
+        assert dataset.harvest.remote_id in included_ids
 
 
 def test_exclude_org_filter(ckan):
@@ -79,8 +79,8 @@ def test_exclude_org_filter(ckan):
     assert len(job.items) == len(included_ids)
 
     for dataset in Dataset.objects:
-        assert dataset.extras['harvest:remote_id'] in included_ids
-        assert dataset.extras['harvest:remote_id'] not in excluded_ids
+        assert dataset.harvest.remote_id in included_ids
+        assert dataset.harvest.remote_id not in excluded_ids
 
 
 def test_tag_filter(ckan):
@@ -99,7 +99,7 @@ def test_tag_filter(ckan):
     job = source.get_last_job()
     assert len(job.items) == 1
     assert Dataset.objects.count() == 1
-    assert Dataset.objects.first().extras['harvest:remote_id'] == package['id']
+    assert Dataset.objects.first().harvest.remote_id == package['id']
 
 
 def test_exclude_tag_filter(ckan):
@@ -118,7 +118,7 @@ def test_exclude_tag_filter(ckan):
     job = source.get_last_job()
     assert len(job.items) == 1
     assert Dataset.objects.count() == 1
-    assert Dataset.objects.first().extras['harvest:remote_id'] == included['id']
+    assert Dataset.objects.first().harvest.remote_id == included['id']
 
 
 def test_can_have_multiple_filters(ckan):
@@ -143,4 +143,4 @@ def test_can_have_multiple_filters(ckan):
     job = source.get_last_job()
     assert len(job.items) == 1
     assert Dataset.objects.count() == 1
-    assert Dataset.objects.first().extras['harvest:remote_id'] == package['id']
+    assert Dataset.objects.first().harvest.remote_id == package['id']
