@@ -1,4 +1,4 @@
-from udata.api import api, fields
+from udata.api import fields
 from udata.core.dataset.api_fields import dataset_harvest_fields
 
 # Register additional harvest fields to serve by api
