@@ -7,7 +7,7 @@ from urllib.parse import urljoin
 
 from udata import uris
 from udata.i18n import lazy_gettext as _
-from udata.core.dataset.models import HarvestDatasetMetadata
+from udata.core.dataset.models import HarvestDatasetMetadata, HarvestResourceMetadata
 from udata.core.dataset.rdf import frequency_from_rdf
 from udata.frontend.markdown import parse_html
 from udata.models import (
@@ -155,8 +155,8 @@ class CkanBackend(BaseBackend):
 
         dataset.tags = [t['name'] for t in data['tags'] if t['name']]
 
-        dataset.created_at = data['metadata_created']
-        dataset.last_modified = data['metadata_modified']
+        dataset.harvest.created_at = data['metadata_created']
+        dataset.harvest.modified_at = data['metadata_modified']
 
         dataset.harvest.ckan_name = data['name']
 
@@ -253,6 +253,8 @@ class CkanBackend(BaseBackend):
             if not resource:
                 resource = Resource(id=res['id'])
                 dataset.resources.append(resource)
+            if not resource.harvest:
+                resource.harvest = HarvestResourceMetadata()
             resource.title = res.get('name', '') or ''
             resource.description = parse_html(res.get('description'))
             resource.url = res['url']
@@ -260,8 +262,8 @@ class CkanBackend(BaseBackend):
             resource.format = res.get('format')
             resource.mime = res.get('mimetype')
             resource.hash = res.get('hash')
-            resource.created = res['created']
-            resource.modified = res['last_modified']
+            resource.harvest.created_at = res['created']
+            resource.harvest.modified_at = res['last_modified']
             resource.published = resource.published or resource.created
 
         return dataset
