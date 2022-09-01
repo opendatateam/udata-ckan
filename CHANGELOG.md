@@ -1,6 +1,6 @@
 # Changelog
 
-## Current (in progress)
+## 2.0.1 (2022-09-01)
 
 - Replace mongo legacy image in CI [#219](https://github.com/opendatateam/udata-ckan/pull/219)
 - Make revision_id optional to match latest CKAN versions [#220](https://github.com/opendatateam/udata-ckan/pull/220)
