@@ -1,5 +1,9 @@
 # Changelog
 
+## Current (in progress)
+
+- Nothing yet
+
 ## 2.0.1 (2022-09-01)
 
 - Replace mongo legacy image in CI [#219](https://github.com/opendatateam/udata-ckan/pull/219)
