@@ -1,3 +1,4 @@
+from datetime import date
 import json
 import pytest
 
@@ -149,6 +150,8 @@ def all_metadata():
         'url': faker.unique_url(),
         'mimetype': faker.mime_type(),
         'format': faker.file_extension(),
+        'last_modified': '2022-09-30',
+        'created': '2022-09-29',
     }
     data = {
         'name': faker.unique_string(),
@@ -391,6 +394,8 @@ def test_all_metadata(data, result):
     # Use result because format is normalized by CKAN
     assert resource.format == resource_result['format'].lower()
     assert resource.mime == resource_data['mimetype']
+    assert resource.harvest.created_at.date() == date(2022, 9, 29)
+    assert resource.harvest.modified_at.date() == date(2022, 9, 30)
 
 
 @pytest.mark.ckan_data('spatial_geom_polygon')
