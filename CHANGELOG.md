@@ -2,7 +2,7 @@
 
 ## Current (in progress)
 
-- Use harvest dynamic field [#227](https://github.com/opendatateam/udata-ckan/pull/227)
+- :warning: **Breaking change** Use harvest dynamic field introduced in udata 5 [#227](https://github.com/opendatateam/udata-ckan/pull/227)
 
 ## 2.0.1 (2022-09-01)
 
