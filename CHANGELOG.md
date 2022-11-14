@@ -1,6 +1,6 @@
 # Changelog
 
-## Current (in progress)
+## 3.0.0 (2022-11-14)
 
 - :warning: **Breaking change** Use harvest dynamic field introduced in udata 5 [#227](https://github.com/opendatateam/udata-ckan/pull/227)
 

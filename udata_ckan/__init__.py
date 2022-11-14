@@ -2,5 +2,5 @@
 CKAN integration for udata
 '''
 
-__version__ = '2.0.2.dev'
+__version__ = '3.0.0'
 __description__ = 'CKAN integration for udata'
