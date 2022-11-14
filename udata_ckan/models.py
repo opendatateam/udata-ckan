@@ -1,4 +1,12 @@
-from udata.models import db, Dataset
+from udata.api import fields
+from udata.core.dataset.api_fields import dataset_harvest_fields
 
-Dataset.extras.register('ckan:name', db.StringField)
-Dataset.extras.register('ckan:source', db.StringField)
+# Register additional harvest fields to serve by api
+dataset_harvest_fields['ckan_name'] = fields.String(
+    description='The ckan name property for ckan harvested dataset',
+    allow_null=True
+)
+dataset_harvest_fields['ckan_source'] = fields.String(
+    description='The ckan source property for ckan harvested dataset',
+    allow_null=True
+)
