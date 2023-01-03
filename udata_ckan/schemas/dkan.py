@@ -69,7 +69,7 @@ group = {
     'name': All(str, slug),
 }
 
-schema = Schema([{
+schema = Schema({
     'id': str,
     'name': str,
     'title': str,
@@ -92,4 +92,4 @@ schema = Schema([{
     'maintainer': Any(str, None),
     'maintainer_email': All(empty_none, Any(All(str, email), None)),
     'state': Any(str, None),
-}], required=True, extra=True)
+}, required=True, extra=True)
