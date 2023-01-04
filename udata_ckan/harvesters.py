@@ -124,7 +124,8 @@ class CkanBackend(BaseBackend):
     def process(self, item):
         response = self.get_action('package_show', id=item.remote_id)
         result = response["result"]
-        # DKAN
+        # DKAN returns a list where CKAN returns an object
+        # we "unlist" here instead of after schema validation in order to get the id easily
         if type(result) == list:
             result = result[0]
         # fix the remote_id (id instead of name) ASAP for better error reporting
