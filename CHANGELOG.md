@@ -2,7 +2,7 @@
 
 ## Current (in progress)
 
-- Nothing yet
+- Use id as remote_id ASAP for better error handling [#239](https://github.com/opendatateam/udata-ckan/pull/239)
 
 ## 3.0.0 (2022-11-14)
 
