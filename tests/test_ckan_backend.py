@@ -579,3 +579,16 @@ def test_flawed_ckan_response(rmock):
     source.reload()
     assert source.get_last_job().status == 'done-errors'
     assert source.get_last_job().items[0].remote_id == _id
+    # flawed response, without an id, we should fallback on the name
+    json = {
+        'success': True,
+        'result': {
+            'name': name,
+        }
+    }
+    rmock.get(PACKAGE_SHOW_URL, json=json, status_code=200,
+              headers={'Content-Type': 'application/json'})
+    actions.run(source.slug)
+    source.reload()
+    assert source.get_last_job().status == 'done-errors'
+    assert source.get_last_job().items[0].remote_id == name
