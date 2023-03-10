@@ -72,9 +72,11 @@ def feed_ckan_and_harvest(request, source, ckan, app):
         for i in items if i.get_closest_marker('ckan_data')
     }
 
+    org_id = ckan.action('organization_create', {'name': 'my_organization'})['result']['id']
     for fixture in fixtures:
         values = request.getfixturevalue(fixture)
         data, kwargs = values if isinstance(values, tuple) else (values, {})
+        data['owner_org'] = org_id
         result = ckan.action('package_create', data)
         rundata[fixture] = data, result, kwargs
 

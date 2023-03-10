@@ -86,8 +86,9 @@ def test_exclude_org_filter(ckan):
 def test_tag_filter(ckan):
     # create 2 datasets with a different tag each
     tag = faker.word()
-    package = package_factory(ckan, tags=[{'name': tag}])
-    package_factory(ckan, tags=[{'name': faker.word()}])
+    org = ckan.action('organization_create', {'name': 'org-1'})['result']
+    package = package_factory(ckan, tags=[{'name': tag}], owner_org=org['id'])
+    package_factory(ckan, tags=[{'name': faker.word()}], owner_org=org['id'])
 
     source = HarvestSourceFactory(backend='ckan', url=ckan.BASE_URL, config={
         'filters': [{'key': 'tags', 'value': tag}]
@@ -105,8 +106,9 @@ def test_tag_filter(ckan):
 def test_exclude_tag_filter(ckan):
     # create 2 datasets with a different tag each
     tag = faker.word()
-    package_factory(ckan, tags=[{'name': tag}])
-    included = package_factory(ckan, tags=[{'name': faker.word()}])
+    org = ckan.action('organization_create', {'name': 'org-1'})['result']
+    package_factory(ckan, tags=[{'name': tag}], owner_org=org['id'])
+    included = package_factory(ckan, tags=[{'name': faker.word()}], owner_org=org['id'])
 
     source = HarvestSourceFactory(backend='ckan', url=ckan.BASE_URL, config={
         'filters': [{'key': 'tags', 'value': tag, 'type': 'exclude'}]
