@@ -14,7 +14,7 @@ resource = {
     'id': str,
     'position': int,
     'name': All(DefaultTo(''), str),
-    'description': All(str, normalize_string),
+    'description': Any(All(str, normalize_string), None),
     'format': All(str, Lower),
     'mimetype': Any(All(str, Lower), None),
     'size': Any(Coerce(int), None),
