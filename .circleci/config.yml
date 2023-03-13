@@ -16,7 +16,7 @@ jobs:
           POSTGRES_PASSWORD: ckan
           DS_RO_PASS: datastore
         # https://discuss.circleci.com/t/cant-run-sql-file-against-docker-for-setup/14166/4
-      - image: ckan/solr:latest
+      - image: ckan/ckan-solr:2.9-solr8
         name: solr
       - image: ckan/ckan-base:2.9.5
         environment:
