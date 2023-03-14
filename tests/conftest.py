@@ -8,26 +8,20 @@ from urllib.parse import urljoin
 from faker.providers import BaseProvider
 from udata.utils import faker_provider, faker
 
-RE_API_KEY = re.compile(r'apikey=(?P<apikey>[a-f0-9-]+)\s')
 CKAN_URL = 'http://localhost:5000'
-PASTER_URL = 'http://localhost:8000'
 CKAN_WAIT_TIMEOUT = 120  # Max time to wait for CKAN being ready (in seconds)
-PASTER_TIMEOUT = 100  # Max time to wait for paster API calls (in seconds)
 
 
 class CkanError(ValueError):
     pass
 
 
-class PasterError(ValueError):
-    pass
-
 
 class CkanClient(object):
     BASE_URL = CKAN_URL
-
-    def __init__(self, apikey):
-        self.apikey = apikey
+    API_URL = '{}/api/3/action/'.format(BASE_URL)
+    PACKAGE_LIST_URL = '{}package_list'.format(API_URL)
+    PACKAGE_SHOW_URL = '{}package_show'.format(API_URL)
 
     @property
     def headers(self):
@@ -58,44 +52,9 @@ class CkanClient(object):
         return response.json()
 
 
-class PasterClient(object):
-    URL = PASTER_URL
-
-    def __call__(self, cmd):
-        response = requests.post(self.URL, data=cmd, timeout=PASTER_TIMEOUT)
-        if response.status_code != 200:
-            raise PasterError(response.text.strip())
-        return response.text
-
-
 @pytest.fixture(scope='session')
-def wait_for_ckan():
-    print('waiting for CKAN')
-    while True:
-        try:
-            requests.get(CKAN_URL, timeout=CKAN_WAIT_TIMEOUT)
-            print('CKAN is ready')
-            return
-        except requests.exceptions.Timeout:
-            pass
-
-
-@pytest.fixture(scope='session')
-def paster(wait_for_ckan):
-    return PasterClient()
-
-
-@pytest.fixture(scope='session')
-def ckan_factory(paster):
-    def ckan():
-        paster('db clean')
-        paster('db init')
-        result = paster('user default')
-        match = RE_API_KEY.search(result)
-        apikey = match.group('apikey')
-        return CkanClient(apikey)
-    return ckan
-
+def ckan():
+    return CkanClient()
 
 @faker_provider
 class UdataCkanProvider(BaseProvider):
