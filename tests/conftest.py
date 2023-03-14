@@ -21,6 +21,7 @@ class CkanClient(object):
     BASE_URL = CKAN_URL
     API_URL = '{}/api/3/action/'.format(BASE_URL)
     PACKAGE_LIST_URL = '{}package_list'.format(API_URL)
+    PACKAGE_SEARCH_URL = '{}package_search'.format(API_URL)
     PACKAGE_SHOW_URL = '{}package_show'.format(API_URL)
 
     @property
