@@ -17,9 +17,9 @@ class CkanSettings(Testing):
     PLUGINS = ['ckan']
 
 
-@pytest.fixture()
+@pytest.fixture
 def app(request):
-    '''Create an udata app once for the module. '''
+    '''Create an udata app. '''
     app = create_app(Defaults, override=CkanSettings)
     with app.app_context():
         drop_db(app)
@@ -28,11 +28,10 @@ def app(request):
         drop_db(app)
 
 
-@pytest.fixture()
+@pytest.fixture
 def source(app, ckan):
     '''
     Create an harvest source for an organization.
-    The source is created once for the module.
     '''
     with app.app_context():
         org = OrganizationFactory()
@@ -69,7 +68,7 @@ def ckan_package(data):
     return {'success': True, 'result': result_data}
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def harvest_ckan(request, source, ckan, app, rmock):
     '''
     This fixture performs the harvesting and return the data, result
@@ -133,7 +132,7 @@ def dataset_for(result):
 # The 2nd argument can ben whatever needs to be given to the test function   #
 ##############################################################################
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def minimal():
     resource_url = faker.unique_url()
     data = {
@@ -145,7 +144,7 @@ def minimal():
     return data, {'resource_url': resource_url}
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def all_metadata():
     resource_data = {
         'name': faker.sentence(),
@@ -166,7 +165,7 @@ def all_metadata():
     return data, {'resource_data': resource_data}
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def spatial_geom_polygon():
     polygon = faker.polygon()
     data = {
@@ -179,7 +178,7 @@ def spatial_geom_polygon():
     return data, {'polygon': polygon}
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def spatial_geom_multipolygon():
     multipolygon = faker.multipolygon()
     data = {
@@ -192,7 +191,7 @@ def spatial_geom_multipolygon():
     return data, {'multipolygon': multipolygon}
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def known_spatial_text_name(app):
     with app.app_context():
         zone = GeoZoneFactory(validity=None)
@@ -206,7 +205,7 @@ def known_spatial_text_name(app):
     return data, {'zone': zone}
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def known_spatial_text_slug(app):
     with app.app_context():
         zone = GeoZoneFactory(validity=None)
@@ -220,7 +219,7 @@ def known_spatial_text_slug(app):
     return data, {'zone': zone}
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def multiple_known_spatial_text(app):
     name = faker.word()
     with app.app_context():
@@ -235,7 +234,7 @@ def multiple_known_spatial_text(app):
     return data, {'name': name}
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def unknown_spatial_text():
     spatial = 'Somewhere'
     data = {
@@ -248,7 +247,7 @@ def unknown_spatial_text():
     return data, {'spatial': spatial}
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def spatial_uri():
     spatial = 'http://www.geonames.org/2111964'
     data = {
@@ -261,7 +260,7 @@ def spatial_uri():
     return data, {'spatial': spatial}
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def skipped_no_resources():
     return {
         'name': faker.unique_string(),
@@ -272,7 +271,7 @@ def skipped_no_resources():
     }
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def ckan_url_is_url():
     url = faker.unique_url()
     data = {
@@ -285,7 +284,7 @@ def ckan_url_is_url():
     return data, {'url': url}
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def ckan_url_is_a_string():
     url = faker.sentence()
     data = {
@@ -298,7 +297,7 @@ def ckan_url_is_a_string():
     return data, {'url': url}
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def frequency_as_rdf_uri():
     data = {
         'name': faker.unique_string(),
@@ -312,7 +311,7 @@ def frequency_as_rdf_uri():
     return data, {'expected': 'daily'}
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def frequency_as_exact_match():
     data = {
         'name': faker.unique_string(),
@@ -324,7 +323,7 @@ def frequency_as_exact_match():
     return data, {'expected': 'daily'}
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def frequency_as_unknown_value():
     value = 'unkowwn-value'
     data = {
@@ -337,7 +336,7 @@ def frequency_as_unknown_value():
     return data, {'expected': value}
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def empty_extras():
     return {
         'name': faker.unique_string(),

@@ -28,7 +28,7 @@ class CkanClient(object):
     def headers(self):
         return {
             'Content-Type': 'application/json',
-            'Authorization': self.apikey,
+            'Authorization': 'dummy_apikey',
         }
 
     def get(self, url, **kwargs):
