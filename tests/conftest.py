@@ -1,6 +1,5 @@
 import json
 import pytest
-import re
 import requests
 
 from urllib.parse import urljoin
@@ -9,12 +8,10 @@ from faker.providers import BaseProvider
 from udata.utils import faker_provider, faker
 
 CKAN_URL = 'http://localhost:5000'
-CKAN_WAIT_TIMEOUT = 120  # Max time to wait for CKAN being ready (in seconds)
 
 
 class CkanError(ValueError):
     pass
-
 
 
 class CkanClient(object):
@@ -56,6 +53,7 @@ class CkanClient(object):
 @pytest.fixture(scope='session')
 def ckan():
     return CkanClient()
+
 
 @faker_provider
 class UdataCkanProvider(BaseProvider):

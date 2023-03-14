@@ -3,7 +3,6 @@ import urllib
 
 from udata.harvest import actions
 from udata.harvest.tests.factories import HarvestSourceFactory
-from udata.models import Dataset
 from udata.utils import faker
 
 
@@ -18,8 +17,8 @@ def test_include_org_filter(ckan, rmock):
         'filters': [{'key': 'organization', 'value': 'organization_name'}]
     })
 
-    rmock.get(ckan.PACKAGE_SEARCH_URL, json={'success': True, 'result': {"results": []}}, status_code=200,
-        headers={'Content-Type': 'application/json'})
+    rmock.get(ckan.PACKAGE_SEARCH_URL, json={'success': True, 'result': {"results": []}},
+              status_code=200, headers={'Content-Type': 'application/json'})
 
     actions.run(source.slug)
     source.reload()
@@ -31,13 +30,14 @@ def test_include_org_filter(ckan, rmock):
     }
     assert rmock.last_request.url == f'{ckan.PACKAGE_SEARCH_URL}?{urllib.parse.urlencode(params)}'
 
+
 def test_exclude_org_filter(ckan, rmock):
     source = HarvestSourceFactory(backend='ckan', url=ckan.BASE_URL, config={
         'filters': [{'key': 'organization', 'value': 'organization_name', 'type': 'exclude'}]
     })
 
-    rmock.get(ckan.PACKAGE_SEARCH_URL, json={'success': True, 'result': {"results": []}}, status_code=200,
-        headers={'Content-Type': 'application/json'})
+    rmock.get(ckan.PACKAGE_SEARCH_URL, json={'success': True, 'result': {"results": []}},
+              status_code=200, headers={'Content-Type': 'application/json'})
 
     actions.run(source.slug)
     source.reload()
@@ -50,6 +50,7 @@ def test_exclude_org_filter(ckan, rmock):
     }
     assert rmock.last_request.url == f'{ckan.PACKAGE_SEARCH_URL}?{urllib.parse.urlencode(params)}'
 
+
 def test_tag_filter(ckan, rmock):
 
     tag = faker.word()
@@ -57,8 +58,8 @@ def test_tag_filter(ckan, rmock):
         'filters': [{'key': 'tags', 'value': tag}]
     })
 
-    rmock.get(ckan.PACKAGE_SEARCH_URL, json={'success': True, 'result': {"results": []}}, status_code=200,
-        headers={'Content-Type': 'application/json'})
+    rmock.get(ckan.PACKAGE_SEARCH_URL, json={'success': True, 'result': {"results": []}},
+              status_code=200, headers={'Content-Type': 'application/json'})
 
     actions.run(source.slug)
     source.reload()
@@ -77,8 +78,8 @@ def test_exclude_tag_filter(ckan, rmock):
         'filters': [{'key': 'tags', 'value': tag, 'type': 'exclude'}]
     })
 
-    rmock.get(ckan.PACKAGE_SEARCH_URL, json={'success': True, 'result': {"results": []}}, status_code=200,
-        headers={'Content-Type': 'application/json'})
+    rmock.get(ckan.PACKAGE_SEARCH_URL, json={'success': True, 'result': {"results": []}},
+              status_code=200, headers={'Content-Type': 'application/json'})
 
     actions.run(source.slug)
     source.reload()
@@ -99,9 +100,8 @@ def test_can_have_multiple_filters(ckan, rmock):
         ]
     })
 
-
-    rmock.get(ckan.PACKAGE_SEARCH_URL, json={'success': True, 'result': {"results": []}}, status_code=200,
-        headers={'Content-Type': 'application/json'})
+    rmock.get(ckan.PACKAGE_SEARCH_URL, json={'success': True, 'result': {"results": []}},
+              status_code=200, headers={'Content-Type': 'application/json'})
 
     actions.run(source.slug)
     source.reload()

@@ -64,7 +64,7 @@ def ckan_package(data):
         res['resource_type'] = res.get('resource_type', 'file')
         res['created'] = res.get('created', faker.date())
         res['last_modified'] = res.get('last_modified', faker.date())
-    
+
     return {'success': True, 'result': result_data}
 
 
@@ -81,9 +81,9 @@ def harvest_ckan(request, source, ckan, app, rmock):
     result = ckan_package(data)
 
     rmock.get(ckan.PACKAGE_SHOW_URL, json=result, status_code=200,
-            headers={'Content-Type': 'application/json'})
-    rmock.get(ckan.PACKAGE_LIST_URL, json={'success': True, 'result': [result['result']['id']]}, status_code=200,
-            headers={'Content-Type': 'application/json'})
+              headers={'Content-Type': 'application/json'})
+    rmock.get(ckan.PACKAGE_LIST_URL, json={'success': True, 'result': [result['result']['id']]},
+              status_code=200, headers={'Content-Type': 'application/json'})
 
     with app.app_context():
         actions.run(source.slug)
