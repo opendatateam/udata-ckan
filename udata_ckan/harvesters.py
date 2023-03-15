@@ -266,7 +266,6 @@ class CkanBackend(BaseBackend):
             resource.hash = res.get('hash')
             resource.harvest.created_at = res['created']
             resource.harvest.modified_at = res['last_modified']
-            resource.published = resource.published or resource.created
 
         return dataset
 

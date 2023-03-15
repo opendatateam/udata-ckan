@@ -4,6 +4,8 @@
 
 - Use id as remote_id ASAP for better error handling [#239](https://github.com/opendatateam/udata-ckan/pull/239)
 - Update mongoDB in CI [#242](https://github.com/opendatateam/udata-ckan/pull/242)
+- Refactor tests to mock CKAN results instead of starting a CKAN instance [#245](https://github.com/opendatateam/udata-ckan/pull/245)
+- Fix resource.published that is not needed anymore [#243](https://github.com/opendatateam/udata-ckan/pull/243)
 
 ## 3.0.0 (2022-11-14)
 
