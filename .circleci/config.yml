@@ -7,29 +7,6 @@ jobs:
       - image: udata/circleci:2-alpine
       - image: mongo:3.6
       - image: redis:alpine
-      - image: udata/elasticsearch:2.4.5
-      - image: postgres:11-alpine
-        name: db
-        environment:
-          POSTGRES_DB: ckan
-          POSTGRES_USER: ckan
-          POSTGRES_PASSWORD: ckan
-          DS_RO_PASS: datastore
-      - image: ckan/solr:latest
-        name: solr
-      - image: udata/ckan-test
-        environment:
-          CKAN_SQLALCHEMY_URL: postgresql://ckan:ckan@db/ckan
-          CKAN_DATASTORE_WRITE_URL: postgresql://ckan:ckan@db/datastore
-          CKAN_DATASTORE_READ_URL: postgresql://datastore_ro:datastore@db/datastore
-          CKAN_SOLR_URL: http://solr:8983/solr/ckan
-          CKAN_REDIS_URL: redis://localhost:6379/1
-          CKAN_DATAPUSHER_URL: http://datapusher:8800
-          CKAN_SITE_URL: http://localhost:5000
-          CKAN_MAX_UPLOAD_SIZE_MB: 50
-          CKAN_WAIT_FOR: tcp://db:5432
-          POSTGRES_PASSWORD: ckan
-          DS_RO_PASS: datastore
     environment:
        BASH_ENV: /root/.bashrc
     steps:
@@ -47,9 +24,11 @@ jobs:
           - py-cache-v6-{{ arch }}-{{ .Environment.BASE_BRANCH }}
       - run:
           name: Install python dependencies
+          # FIXME: For now, we fix setuptools due to https://github.com/etalab/data.gouv.fr/issues/1041
           command: |
             virtualenv venv
             source venv/bin/activate
+            pip install setuptools==66.1.1
             pip install -e . || pip install -e .
             pip install -r requirements/develop.pip || pip install -r requirements/develop.pip
       - save_cache:
