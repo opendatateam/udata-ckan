@@ -1,35 +1,58 @@
 version: "3"
 
+volumes:
+  ckan_storage:
+  pg_data:
+  solr_data:
+
 services:
   ckan:
-    image: udata/ckan-test
-    links:
-      - db
-      - solr
-      - redis
+    container_name: ckan
+    image: ckan/ckan-base:2.9.5
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+      solr:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     ports:
-      - "5000:5000"
-      - "8000:8000"
-    environment:
-      - CKAN_SQLALCHEMY_URL=postgresql://ckan:ckan@db/ckan
-      - CKAN_DATASTORE_WRITE_URL=postgresql://ckan:ckan@db/datastore
-      - CKAN_DATASTORE_READ_URL=postgresql://datastore_ro:datastore@db/datastore
-      - CKAN_SOLR_URL=http://solr:8983/solr/ckan
-      - CKAN_REDIS_URL=redis://redis:6379/1
-      - CKAN_DATAPUSHER_URL=http://datapusher:8800
-      - CKAN_SITE_URL=http://localhost:5000
-      - CKAN_WAIT_FOR=tcp://db:5432
-      - POSTGRES_PASSWORD=ckan
-      - DS_RO_PASS=datastore
+      - "0.0.0.0:5000:5000" 
+    volumes:
+      - ckan_storage:/var/lib/ckan
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO", "/dev/null", "http://localhost:5000"]
+
   db:
-    image: postgres:11-alpine
+    container_name: db
+    image: postgres:12-alpine
     environment:
-      - POSTGRES_DB=ckan
-      - POSTGRES_USER=ckan
+      - DATASTORE_READONLY_PASSWORD=datastore
       - POSTGRES_PASSWORD=ckan
-      - DS_RO_PASS=datastore
-    tmpfs: /var/lib/postgresql/data
+      - PGDATA=/var/lib/postgresql/data/db
+      - POSTGRES_USER=ckan
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./postgresql/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "ckan"]
+
   solr:
-    image: ckan/solr:latest
+    container_name: solr
+    image: ckan/ckan-solr:2.9-solr8
+    volumes:
+      - solr_data:/var/solr
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO", "/dev/null", "http://localhost:8983/solr/"]
+
   redis:
-    image: redis:latest
+    container_name: redis
+    image: redis:6
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "-e", "QUIT"]
