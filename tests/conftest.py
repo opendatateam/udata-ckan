@@ -1,7 +1,6 @@
 import json
 import pytest
 import requests
-from subprocess import check_output
 
 from urllib.parse import urljoin
 
