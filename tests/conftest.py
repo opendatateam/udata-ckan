@@ -1,6 +1,5 @@
 import json
 import pytest
-import re
 import requests
 from subprocess import check_output
 
@@ -9,9 +8,7 @@ from urllib.parse import urljoin
 from faker.providers import BaseProvider
 from udata.utils import faker_provider, faker
 
-RE_API_KEY = re.compile(r'apikey=(?P<apikey>[a-f0-9-]+)\s')
 CKAN_URL = 'http://localhost:5000'
-CKAN_WAIT_TIMEOUT = 120  # Max time to wait for CKAN being ready (in seconds)
 
 
 class CkanError(ValueError):
@@ -20,15 +17,16 @@ class CkanError(ValueError):
 
 class CkanClient(object):
     BASE_URL = CKAN_URL
-
-    def __init__(self, apikey):
-        self.apikey = apikey
+    API_URL = '{}/api/3/action/'.format(BASE_URL)
+    PACKAGE_LIST_URL = '{}package_list'.format(API_URL)
+    PACKAGE_SEARCH_URL = '{}package_search'.format(API_URL)
+    PACKAGE_SHOW_URL = '{}package_show'.format(API_URL)
 
     @property
     def headers(self):
         return {
             'Content-Type': 'application/json',
-            'Authorization': self.apikey,
+            'Authorization': 'dummy_apikey',
         }
 
     def get(self, url, **kwargs):
@@ -54,32 +52,8 @@ class CkanClient(object):
 
 
 @pytest.fixture(scope='session')
-def wait_for_ckan():
-    print('waiting for CKAN')
-    while True:
-        try:
-            requests.get(CKAN_URL, timeout=CKAN_WAIT_TIMEOUT)
-            print('CKAN is ready')
-            return
-        except requests.exceptions.Timeout:
-            pass
-
-
-# TODO: find a solution to replace paster
-def docker_exec(cmd):
-    return check_output(f'docker exec udata-ckan-ckan-1 ckan {cmd}', shell=True)
-
-@pytest.fixture(scope='session')
-def ckan_factory():
-    def ckan():
-        docker_exec('db clean --yes')
-        docker_exec('db init')
-        docker_exec('search-index rebuild')
-        result = docker_exec('user show default')
-        match = RE_API_KEY.search(str(result))
-        apikey = match.group('apikey')
-        return CkanClient(apikey)
-    return ckan
+def ckan():
+    return CkanClient()
 
 
 @faker_provider

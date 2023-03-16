@@ -17,23 +17,9 @@ class CkanSettings(Testing):
     PLUGINS = ['ckan']
 
 
-##############################################################################
-#                              Module fixtures                               #
-#                                                                            #
-# This module behave like a single CKAN harvest run.                         #
-# CKAN and udata DB are instanciated once for the whole module to speedup    #
-# tests.                                                                     #
-##############################################################################
-
-@pytest.fixture(scope='module')
-def ckan(ckan_factory):
-    '''Instanciate a clean CKAN instance once for this module. '''
-    return ckan_factory()
-
-
-@pytest.fixture(scope='module')
+@pytest.fixture
 def app(request):
-    '''Create an udata app once for the module. '''
+    '''Create an udata app. '''
     app = create_app(Defaults, override=CkanSettings)
     with app.app_context():
         drop_db(app)
@@ -42,11 +28,10 @@ def app(request):
         drop_db(app)
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture
 def source(app, ckan):
     '''
     Create an harvest source for an organization.
-    The source is ctreated once for the module.
     '''
     with app.app_context():
         org = OrganizationFactory()
@@ -55,63 +40,78 @@ def source(app, ckan):
                                     organization=org)
 
 
-@pytest.fixture(scope='module', autouse=True)
-def feed_ckan_and_harvest(request, source, ckan, app):
-    '''
-    This fixture feed CKAN with data from data fixtures,
-    then perform the harvesting and return the data and
-    results for this module tests
-    '''
-    module = request.module
-    session = request.session
-    items = [item for item in session.items if item.module == module]
-    rundata = {}
-
-    fixtures = {
-        i.get_closest_marker('ckan_data').args[0]
-        for i in items if i.get_closest_marker('ckan_data')
+def ckan_package(data):
+    result_data = {
+        'id': faker.uuid4(),
+        'metadata_modified': faker.date(),
+        'tags': [],
+        'license_id': None,
+        'metadata_created': faker.date(),
+        'type': 'dataset',
+        'author': None,
+        'maintainer_email': None,
+        'state': None,
+        'author_email': None,
+        'license_title': None,
+        'organization': None,
+        'private': False,
+        'maintainer': None
     }
+    result_data.update(data)
 
-    org_id = ckan.action('organization_create', {'name': 'my_organization'})['result']['id']
-    for fixture in fixtures:
-        values = request.getfixturevalue(fixture)
-        data, kwargs = values if isinstance(values, tuple) else (values, {})
-        data['owner_org'] = org_id
-        result = ckan.action('package_create', data)
-        rundata[fixture] = data, result, kwargs
+    for res in result_data.get('resources', []):
+        res['id'] = faker.uuid4()
+        res['resource_type'] = res.get('resource_type', 'file')
+        res['created'] = res.get('created', faker.date())
+        res['last_modified'] = res.get('last_modified', faker.date())
+
+    return {'success': True, 'result': result_data}
+
+
+@pytest.fixture
+def harvest_ckan(request, source, ckan, app, rmock):
+    '''
+    This fixture performs the harvesting and return the data, result
+    and kwargs for this test case
+    '''
+
+    fixture = request.node.get_closest_marker('ckan_data').args[0]
+    values = request.getfixturevalue(fixture)
+    data, kwargs = values if isinstance(values, tuple) else (values, {})
+    result = ckan_package(data)
+
+    rmock.get(ckan.PACKAGE_SHOW_URL, json=result, status_code=200,
+              headers={'Content-Type': 'application/json'})
+    rmock.get(ckan.PACKAGE_LIST_URL, json={'success': True, 'result': [result['result']['id']]},
+              status_code=200, headers={'Content-Type': 'application/json'})
 
     with app.app_context():
         actions.run(source.slug)
         source.reload()
         job = source.get_last_job()
-        assert len(job.items) == len(fixtures)
+        assert len(job.items) == 1
 
-    return rundata
+    return data, result, kwargs
 
 
 ##############################################################################
 #                       Method fixtures and helpers                          #
 ##############################################################################
 
-@pytest.fixture
-def data_name(request):
-    marker = request.node.get_closest_marker('ckan_data')
-    return marker.args[0]
-
 
 @pytest.fixture
-def data(feed_ckan_and_harvest, data_name):
-    return feed_ckan_and_harvest[data_name][0]
+def data(harvest_ckan):
+    return harvest_ckan[0]
 
 
 @pytest.fixture
-def result(feed_ckan_and_harvest, data_name):
-    return feed_ckan_and_harvest[data_name][1]
+def result(harvest_ckan):
+    return harvest_ckan[1]
 
 
 @pytest.fixture
-def kwargs(feed_ckan_and_harvest, data_name):
-    return feed_ckan_and_harvest[data_name][2]
+def kwargs(harvest_ckan):
+    return harvest_ckan[2]
 
 
 def job_item_for(job, result):
@@ -132,7 +132,7 @@ def dataset_for(result):
 # The 2nd argument can ben whatever needs to be given to the test function   #
 ##############################################################################
 
-@pytest.fixture(scope='module')
+@pytest.fixture
 def minimal():
     resource_url = faker.unique_url()
     data = {
@@ -144,7 +144,7 @@ def minimal():
     return data, {'resource_url': resource_url}
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture
 def all_metadata():
     resource_data = {
         'name': faker.sentence(),
@@ -165,7 +165,7 @@ def all_metadata():
     return data, {'resource_data': resource_data}
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture
 def spatial_geom_polygon():
     polygon = faker.polygon()
     data = {
@@ -178,7 +178,7 @@ def spatial_geom_polygon():
     return data, {'polygon': polygon}
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture
 def spatial_geom_multipolygon():
     multipolygon = faker.multipolygon()
     data = {
@@ -191,7 +191,7 @@ def spatial_geom_multipolygon():
     return data, {'multipolygon': multipolygon}
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture
 def known_spatial_text_name(app):
     with app.app_context():
         zone = GeoZoneFactory(validity=None)
@@ -205,7 +205,7 @@ def known_spatial_text_name(app):
     return data, {'zone': zone}
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture
 def known_spatial_text_slug(app):
     with app.app_context():
         zone = GeoZoneFactory(validity=None)
@@ -219,7 +219,7 @@ def known_spatial_text_slug(app):
     return data, {'zone': zone}
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture
 def multiple_known_spatial_text(app):
     name = faker.word()
     with app.app_context():
@@ -234,7 +234,7 @@ def multiple_known_spatial_text(app):
     return data, {'name': name}
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture
 def unknown_spatial_text():
     spatial = 'Somewhere'
     data = {
@@ -247,7 +247,7 @@ def unknown_spatial_text():
     return data, {'spatial': spatial}
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture
 def spatial_uri():
     spatial = 'http://www.geonames.org/2111964'
     data = {
@@ -260,17 +260,18 @@ def spatial_uri():
     return data, {'spatial': spatial}
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture
 def skipped_no_resources():
     return {
         'name': faker.unique_string(),
         'title': faker.sentence(),
         'notes': faker.paragraph(),
         'tags': [{'name': faker.unique_string()} for _ in range(3)],
+        'resources': []
     }
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture
 def ckan_url_is_url():
     url = faker.unique_url()
     data = {
@@ -283,7 +284,7 @@ def ckan_url_is_url():
     return data, {'url': url}
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture
 def ckan_url_is_a_string():
     url = faker.sentence()
     data = {
@@ -296,7 +297,7 @@ def ckan_url_is_a_string():
     return data, {'url': url}
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture
 def frequency_as_rdf_uri():
     data = {
         'name': faker.unique_string(),
@@ -310,7 +311,7 @@ def frequency_as_rdf_uri():
     return data, {'expected': 'daily'}
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture
 def frequency_as_exact_match():
     data = {
         'name': faker.unique_string(),
@@ -322,7 +323,7 @@ def frequency_as_exact_match():
     return data, {'expected': 'daily'}
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture
 def frequency_as_unknown_value():
     value = 'unkowwn-value'
     data = {
@@ -335,7 +336,7 @@ def frequency_as_unknown_value():
     return data, {'expected': value}
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture
 def empty_extras():
     return {
         'name': faker.unique_string(),
@@ -423,7 +424,6 @@ def test_geospatial_geom_multipolygon(result, kwargs):
 def test_skip_no_resources(source, result):
     job = source.get_last_job()
     item = job_item_for(job, result)
-
     assert item.status == 'skipped'
     assert dataset_for(result) is None
 
@@ -512,7 +512,7 @@ def test_keep_unknown_spatial_uri_as_extra(result, kwargs):
 ##############################################################################
 #                       Edge cases manually written                          #
 ##############################################################################
-def test_minimal_ckan_response(rmock):
+def test_minimal_ckan_response(app, rmock):
     '''CKAN Harvester should accept the minimum dataset payload'''
     CKAN_URL = 'https://harvest.me/'
     API_URL = '{}api/3/action/'.format(CKAN_URL)
@@ -555,7 +555,7 @@ def test_minimal_ckan_response(rmock):
     assert source.get_last_job().status == 'done'
 
 
-def test_flawed_ckan_response(rmock):
+def test_flawed_ckan_response(app, rmock):
     '''CKAN Harvester should report item error with id == remote_id in item'''
     CKAN_URL = 'https://harvest.me/'
     API_URL = '{}api/3/action/'.format(CKAN_URL)
