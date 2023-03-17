@@ -1,5 +1,9 @@
 # Changelog
 
+## Current (in progress)
+
+- Nothing yet
+
 ## 3.0.1 (2023-03-17)
 
 - Use id as remote_id ASAP for better error handling [#239](https://github.com/opendatateam/udata-ckan/pull/239)
