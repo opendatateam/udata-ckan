@@ -2,7 +2,7 @@
 
 ## Current (in progress)
 
-- Nothing yet
+- Use `datetime.utcnow` to make sure to handle utc datetimes [#246](https://github.com/opendatateam/udata-ckan/pull/246)
 
 ## 3.0.1 (2023-03-17)
 
