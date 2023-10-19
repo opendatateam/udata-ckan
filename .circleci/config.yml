@@ -4,7 +4,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: udata/circleci:2-alpine
+      - image: udata/circleci:py3.11
       - image: mongo:5.0.15
       - image: redis:alpine
     environment:
@@ -26,7 +26,7 @@ jobs:
           name: Install python dependencies
           # FIXME: For now, we fix setuptools due to https://github.com/etalab/data.gouv.fr/issues/1041
           command: |
-            virtualenv venv
+            python -m venv venv
             source venv/bin/activate
             pip install --force-reinstall setuptools==66.1.1
             pip install -e . || pip install -e .
@@ -74,7 +74,7 @@ jobs:
 
   publish:
     docker:
-      - image: udata/circleci:2-alpine
+      - image: udata/circleci:py3.11
     steps:
       - attach_workspace:
           at: .
