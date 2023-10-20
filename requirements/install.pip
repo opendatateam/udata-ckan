@@ -1,2 +1,2 @@
-udata>=5.0.0
+udata@git+https://github.com/maudetes/udata.git@chore/upgrade-python
 humanfriendly==4.18
