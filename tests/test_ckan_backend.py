@@ -194,7 +194,7 @@ def spatial_geom_multipolygon():
 @pytest.fixture
 def known_spatial_text_name(app):
     with app.app_context():
-        zone = GeoZoneFactory(validity=None)
+        zone = GeoZoneFactory()
     data = {
         'name': faker.unique_string(),
         'title': faker.sentence(),
@@ -208,7 +208,7 @@ def known_spatial_text_name(app):
 @pytest.fixture
 def known_spatial_text_slug(app):
     with app.app_context():
-        zone = GeoZoneFactory(validity=None)
+        zone = GeoZoneFactory()
     data = {
         'name': faker.unique_string(),
         'title': faker.sentence(),
@@ -223,7 +223,7 @@ def known_spatial_text_slug(app):
 def multiple_known_spatial_text(app):
     name = faker.word()
     with app.app_context():
-        GeoZoneFactory.create_batch(2, name=name, validity=None)
+        GeoZoneFactory.create_batch(2, name=name)
     data = {
         'name': faker.unique_string(),
         'title': faker.sentence(),
