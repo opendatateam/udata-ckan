@@ -1,7 +1,6 @@
 import json
 import logging
 
-from datetime import datetime
 from uuid import UUID
 from urllib.parse import urljoin
 
