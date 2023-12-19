@@ -1,7 +1,6 @@
 import json
 import logging
 
-from datetime import datetime
 from uuid import UUID
 from urllib.parse import urljoin
 
@@ -179,7 +178,6 @@ class CkanBackend(BaseBackend):
             elif key == 'spatial-text':
                 # Textual representation of the extent / location
                 qs = GeoZone.objects(db.Q(name=value) | db.Q(slug=value))
-                qs = qs.valid_at(datetime.utcnow())
                 if qs.count() == 1:
                     spatial_zone = qs.first()
                 else:
