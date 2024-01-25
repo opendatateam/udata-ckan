@@ -1,6 +1,6 @@
 # Changelog
 
-## Current (in progress)
+## 3.0.2 (2024-01-25)
 
 - Use `datetime.utcnow` to make sure to handle utc datetimes [#246](https://github.com/opendatateam/udata-ckan/pull/246)
 - Remove `valid_at` on deprecated GeoZones [#248](https://github.com/opendatateam/udata-ckan/pull/248)
