@@ -2,7 +2,7 @@
 
 ## Current (in progress)
 
-- Nothing yet
+- Update constants imports from `.models` to `.constants` [#250](https://github.com/opendatateam/udata-ckan/pull/250)
 
 ## 3.0.2 (2024-01-25)
 
