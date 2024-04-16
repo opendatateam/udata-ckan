@@ -4,6 +4,10 @@
 
 - Nothing yet
 
+## 3.0.3 (2024-04-16)
+
+- Update constants imports from `.models` to `.constants` [#250](https://github.com/opendatateam/udata-ckan/pull/250)
+
 ## 3.0.2 (2024-01-25)
 
 - Use `datetime.utcnow` to make sure to handle utc datetimes [#246](https://github.com/opendatateam/udata-ckan/pull/246)
