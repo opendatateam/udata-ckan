@@ -1,6 +1,6 @@
 # Changelog
 
-## Current (in progress)
+## 3.0.3 (2024-04-16)
 
 - Update constants imports from `.models` to `.constants` [#250](https://github.com/opendatateam/udata-ckan/pull/250)
 
