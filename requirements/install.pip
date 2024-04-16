@@ -1,2 +1,2 @@
-udata==7.0.7.dev28639
+udata>=5.0.0
 humanfriendly==4.18
