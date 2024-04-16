@@ -6,12 +6,16 @@ from urllib.parse import urljoin
 
 from udata import uris
 from udata.i18n import lazy_gettext as _
+try:
+    from udata.core.dataset.constants import UPDATE_FREQUENCIES
+except ImportError:
+    # legacy import of constants in udata
+    from udata.models import UPDATE_FREQUENCIES
 from udata.core.dataset.models import HarvestDatasetMetadata, HarvestResourceMetadata
 from udata.core.dataset.rdf import frequency_from_rdf
 from udata.frontend.markdown import parse_html
 from udata.models import (
     db, Resource, License, SpatialCoverage, GeoZone,
-    UPDATE_FREQUENCIES,
 )
 from udata.utils import get_by, daterange_start, daterange_end
 
