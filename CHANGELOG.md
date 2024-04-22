@@ -2,7 +2,7 @@
 
 ## Current (in progress)
 
-- **breaking change** Migrate to Python 3.11 following `udata` dependencies upgrade [#249](https://github.com/opendatateam/udata-ckan/pull/249)
+- Migrate to Python 3.11 following `udata` dependencies upgrade [#249](https://github.com/opendatateam/udata-ckan/pull/249)
 
 ## 3.0.3 (2024-04-16)
 
