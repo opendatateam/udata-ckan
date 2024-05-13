@@ -15,11 +15,11 @@ from udata.core.dataset.models import HarvestDatasetMetadata, HarvestResourceMet
 from udata.core.dataset.rdf import frequency_from_rdf
 from udata.frontend.markdown import parse_html
 from udata.models import (
-    db, Resource, License, SpatialCoverage, GeoZone,
+    db, Resource, License, SpatialCoverage, GeoZone, Dataset
 )
 from udata.utils import get_by, daterange_start, daterange_end
 
-from udata.harvest.backends.base import BaseBackend, HarvestFilter
+from udata.harvest.backends.base import BaseSyncBackend, HarvestFilter
 from udata.harvest.exceptions import HarvestException, HarvestSkipException
 
 from .schemas.ckan import schema as ckan_schema
@@ -31,7 +31,7 @@ log = logging.getLogger(__name__)
 ALLOWED_RESOURCE_TYPES = ('dkan', 'file', 'file.upload', 'api', 'metadata')
 
 
-class CkanBackend(BaseBackend):
+class CkanBackend(BaseSyncBackend):
     display_name = 'CKAN'
     filters = (
         HarvestFilter(_('Organization'), 'organization', str,
@@ -96,7 +96,7 @@ class CkanBackend(BaseBackend):
         response = self.get(url)
         return response.json()
 
-    def initialize(self):
+    def inner_harvest(self):
         '''List all datasets for a given ...'''
         fix = False  # Fix should be True for CKAN < '1.8'
 
@@ -122,26 +122,29 @@ class CkanBackend(BaseBackend):
         if self.max_items:
             names = names[:self.max_items]
         for name in names:
-            self.add_item(name)
+            response = self.get_action('package_show', id=name)
 
-    def process(self, item):
-        response = self.get_action('package_show', id=item.remote_id)
-        result = response["result"]
-        # DKAN returns a list where CKAN returns an object
-        # we "unlist" here instead of after schema validation in order to get the id easily
-        if type(result) == list:
-            result = result[0]
-        # fix the remote_id (id instead of name) ASAP for better error reporting
-        if result.get("id"):
-            item.remote_id = result["id"]
+            result = response["result"]
+            # DKAN returns a list where CKAN returns an object
+            # we "unlist" here instead of after schema validation in order to get the id easily
+            if type(result) == list:
+                result = result[0]
+
+            if result.get("id"):
+                remote_id = result["id"]
+            else:
+                remote_id = name
+
+            should_stop = self.process_dataset(remote_id, result=result)
+            if should_stop:
+                return
+
+    def inner_process_dataset(self, dataset: Dataset, result):
         data = self.validate(result, self.schema)
 
         # Skip if no resource
         if not len(data.get('resources', [])):
-            msg = 'Dataset {0} has no record'.format(item.remote_id)
-            raise HarvestSkipException(msg)
-
-        dataset = self.get_dataset(item.remote_id)
+            raise HarvestSkipException('Dataset f{name} has no record')
 
         if not dataset.harvest:
             dataset.harvest = HarvestDatasetMetadata()
