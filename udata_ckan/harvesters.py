@@ -16,7 +16,7 @@ from udata.core.dataset.models import HarvestDatasetMetadata, HarvestResourceMet
 from udata.core.dataset.rdf import frequency_from_rdf
 from udata.frontend.markdown import parse_html
 from udata.models import (
-    db, Resource, License, SpatialCoverage, GeoZone, Dataset
+    db, Resource, License, SpatialCoverage, GeoZone
 )
 from udata.utils import get_by, daterange_start, daterange_end
 
@@ -124,12 +124,12 @@ class CkanBackend(BaseSyncBackend):
             names = names[:self.max_items]
         for name in names:
             # We use `name` as `remote_id` for now, we'll be replace at the beginning of the process
-            should_stop = self.process_dataset(name, name=name)
+            should_stop = self.process_dataset(name)
             if should_stop:
                 return
 
-    def inner_process_dataset(self, item: HarvestItem, dataset: Dataset, name: str):
-        response = self.get_action('package_show', id=name)
+    def inner_process_dataset(self, item: HarvestItem):
+        response = self.get_action('package_show', id=item.remote_id)
 
         result = response["result"]
         # DKAN returns a list where CKAN returns an object
@@ -137,17 +137,17 @@ class CkanBackend(BaseSyncBackend):
         if type(result) == list:
             result = result[0]
 
-        # Put the correct 
+        # Replace the `remote_id` from `name` to `id`.
         if result.get("id"):
             item.remote_id = result["id"]
-
-        dataset = self.get_dataset(item.remote_id)
 
         data = self.validate(result, self.schema)
 
         # Skip if no resource
         if not len(data.get('resources', [])):
             raise HarvestSkipException('Dataset f{name} has no record')
+
+        dataset = self.get_dataset(item.remote_id)
 
         if not dataset.harvest:
             dataset.harvest = HarvestDatasetMetadata()
