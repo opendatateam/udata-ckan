@@ -6,6 +6,7 @@ from urllib.parse import urljoin
 
 from udata import uris
 from udata.i18n import lazy_gettext as _
+from udata.harvest.models import HarvestItem
 try:
     from udata.core.dataset.constants import UPDATE_FREQUENCIES
 except ImportError:
@@ -122,24 +123,26 @@ class CkanBackend(BaseSyncBackend):
         if self.max_items:
             names = names[:self.max_items]
         for name in names:
-            response = self.get_action('package_show', id=name)
-
-            result = response["result"]
-            # DKAN returns a list where CKAN returns an object
-            # we "unlist" here instead of after schema validation in order to get the id easily
-            if type(result) == list:
-                result = result[0]
-
-            if result.get("id"):
-                remote_id = result["id"]
-            else:
-                remote_id = name
-
-            should_stop = self.process_dataset(remote_id, result=result)
+            # We use `name` as `remote_id` for now, we'll be replace at the beginning of the process
+            should_stop = self.process_dataset(name, name=name)
             if should_stop:
                 return
 
-    def inner_process_dataset(self, dataset: Dataset, result):
+    def inner_process_dataset(self, item: HarvestItem, dataset: Dataset, name: str):
+        response = self.get_action('package_show', id=name)
+
+        result = response["result"]
+        # DKAN returns a list where CKAN returns an object
+        # we "unlist" here instead of after schema validation in order to get the id easily
+        if type(result) == list:
+            result = result[0]
+
+        # Put the correct 
+        if result.get("id"):
+            item.remote_id = result["id"]
+
+        dataset = self.get_dataset(item.remote_id)
+
         data = self.validate(result, self.schema)
 
         # Skip if no resource
