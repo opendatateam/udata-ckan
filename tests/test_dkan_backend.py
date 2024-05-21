@@ -56,8 +56,7 @@ def test_dkan_french_w_license(app, rmock):
     datasets = Dataset.objects.filter(organization=org)
     assert len(datasets) > 0
 
-    q = {'harvest__remote_id': '04be6288-696d-4331-850d-a144871a7e3a'}
-    dataset = datasets.get(**q)
+    dataset = datasets.get(**{'harvest__remote_id': '04be6288-696d-4331-850d-a144871a7e3a'})
     assert dataset.harvest.created_at == datetime(2019, 12, 10, 0, 0)
     assert dataset.harvest.modified_at == datetime(2019, 9, 30, 0, 0)
     assert len(dataset.resources) == 2
