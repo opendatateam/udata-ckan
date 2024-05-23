@@ -145,7 +145,7 @@ class CkanBackend(BaseSyncBackend):
 
         # Skip if no resource
         if not len(data.get('resources', [])):
-            raise HarvestSkipException(f'Dataset {data['name']} has no record')
+            raise HarvestSkipException(f"Dataset {data['name']} has no record")
 
         dataset = self.get_dataset(item.remote_id)
 
