@@ -20,7 +20,7 @@ from udata.models import (
 )
 from udata.utils import get_by, daterange_start, daterange_end
 
-from udata.harvest.backends.base import BaseSyncBackend, HarvestFilter
+from udata.harvest.backends.base import BaseBackend, HarvestFilter
 from udata.harvest.exceptions import HarvestException, HarvestSkipException
 
 from .schemas.ckan import schema as ckan_schema
@@ -32,7 +32,7 @@ log = logging.getLogger(__name__)
 ALLOWED_RESOURCE_TYPES = ('dkan', 'file', 'file.upload', 'api', 'metadata')
 
 
-class CkanBackend(BaseSyncBackend):
+class CkanBackend(BaseBackend):
     display_name = 'CKAN'
     filters = (
         HarvestFilter(_('Organization'), 'organization', str,
