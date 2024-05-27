@@ -31,6 +31,7 @@ jobs:
             pip install --force-reinstall setuptools==66.1.1
             pip install -r requirements/install.pip || pip install -r requirements/install.pip
             pip install -r requirements/develop.pip || pip install -r requirements/develop.pip
+            pip install -e . || pip install -e .
       - save_cache:
           key: py-cache-v10-{{ arch }}-{{ checksum "python.deps" }}
           paths:
