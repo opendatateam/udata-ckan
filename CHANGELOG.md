@@ -3,6 +3,7 @@
 ## Current (in progress)
 
 - Migrate to Python 3.11 following `udata` dependencies upgrade [#249](https://github.com/opendatateam/udata-ckan/pull/249)
+- Switch harvest backend to new harvest sync system [#251](https://github.com/opendatateam/udata-ckan/pull/251)
 
 ## 3.0.3 (2024-04-16)
 
