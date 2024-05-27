@@ -124,8 +124,8 @@ class CkanBackend(BaseBackend):
             names = names[:self.max_items]
         for name in names:
             # We use `name` as `remote_id` for now, we'll be replace at the beginning of the process
-            should_stop = self.process_dataset(name)
-            if should_stop:
+            self.process_dataset(name)
+            if self.is_done():
                 return
 
     def inner_process_dataset(self, item: HarvestItem):
