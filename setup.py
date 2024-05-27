@@ -86,7 +86,7 @@ def pip(filename):
     requirements = []
     for line in open(os.path.join('requirements', filename)):
         line = line.strip()
-        if not line or line.startswith('#'):
+        if not line or '://' in line or line.startswith('#'):
             continue
         match = RE_REQUIREMENT.match(line)
         if match:
