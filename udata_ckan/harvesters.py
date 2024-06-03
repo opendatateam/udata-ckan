@@ -120,8 +120,7 @@ class CkanBackend(BaseBackend):
         else:
             response = self.get_action('package_list', fix=fix)
             names = response['result']
-        if self.max_items:
-            names = names[:self.max_items]
+
         for name in names:
             # We use `name` as `remote_id` for now, we'll be replace at the beginning of the process
             self.process_dataset(name)
