@@ -522,28 +522,7 @@ def test_minimal_ckan_response(app, rmock):
     name = faker.unique_string()
     json = {
         'success': True,
-        'result': {
-            'id': faker.uuid4(),
-            'name': name,
-            'title': faker.sentence(),
-            'maintainer': faker.name(),
-            'tags': [],
-            'private': False,
-            'maintainer_email': faker.email(),
-            'license_id': None,
-            'metadata_created': faker.iso8601(),
-            'organization': None,
-            'metadata_modified': faker.iso8601(),
-            'author': None,
-            'author_email': None,
-            'notes': faker.paragraph(),
-            'license_title': None,
-            'state': None,
-            'type': 'dataset',
-            'resources': [],
-            # extras and revision_id are not always present so we exclude them
-            # from the minimal payload
-        }
+        'result': minimal_data(name=name),
     }
     source = HarvestSourceFactory(backend='ckan', url=CKAN_URL)
     rmock.get(PACKAGE_LIST_URL, json={'success': True, 'result': [name]}, status_code=200,
@@ -594,3 +573,60 @@ def test_flawed_ckan_response(app, rmock):
     source.reload()
     assert source.get_last_job().status == 'done-errors'
     assert source.get_last_job().items[0].remote_id == name
+
+@pytest.mark.options(HARVEST_MAX_ITEMS=1)
+def test_max_items(app, rmock):
+    '''CKAN Harvester should report item error with id == remote_id in item'''
+    CKAN_URL = 'https://harvest.me/'
+    API_URL = '{}api/3/action/'.format(CKAN_URL)
+    PACKAGE_LIST_URL = '{}package_list'.format(API_URL)
+    PACKAGE_SHOW_URL = '{}package_show'.format(API_URL)
+
+    name_a = faker.unique_string()
+    name_b = faker.unique_string()
+    id_a = faker.uuid4()
+    json_a = {
+        'success': True,
+        'result': minimal_data(id=id_a, name=name_a),
+    }
+    id_b = faker.uuid4()
+    json_b = {
+        'success': True,
+        'result': minimal_data(id=id_b, name=name_b),
+    }
+    source = HarvestSourceFactory(backend='ckan', url=CKAN_URL)
+    rmock.get(PACKAGE_LIST_URL, json={'success': True, 'result': [name_a, name_b]}, status_code=200,
+              headers={'Content-Type': 'application/json'})
+    rmock.get(f"{PACKAGE_SHOW_URL}?id={name_a}", json=json_a, status_code=200,
+              headers={'Content-Type': 'application/json'})
+    rmock.get(f"{PACKAGE_SHOW_URL}?id={name_b}", json=json_b, status_code=200,
+              headers={'Content-Type': 'application/json'})
+    actions.run(source.slug)
+    source.reload()
+    assert source.get_last_job().status == 'done'
+    assert len(source.get_last_job().items) == 1
+    assert source.get_last_job().items[0].remote_id == id_a
+
+def minimal_data(**kwargs):
+    # extras and revision_id are not always present so we exclude them
+    # from the minimal payload
+    return {**{
+        'id': faker.uuid4(),
+        'name': faker.uuid4(),
+        'title': faker.sentence(),
+        'maintainer': faker.name(),
+        'tags': [],
+        'private': False,
+        'maintainer_email': faker.email(),
+        'license_id': None,
+        'metadata_created': faker.iso8601(),
+        'organization': None,
+        'metadata_modified': faker.iso8601(),
+        'author': None,
+        'author_email': None,
+        'notes': faker.paragraph(),
+        'license_title': None,
+        'state': None,
+        'type': 'dataset',
+        'resources': [],
+    }, **kwargs}

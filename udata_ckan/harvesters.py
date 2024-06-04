@@ -6,6 +6,7 @@ from urllib.parse import urljoin
 
 from udata import uris
 from udata.i18n import lazy_gettext as _
+from udata.harvest.models import HarvestItem
 try:
     from udata.core.dataset.constants import UPDATE_FREQUENCIES
 except ImportError:
@@ -15,7 +16,7 @@ from udata.core.dataset.models import HarvestDatasetMetadata, HarvestResourceMet
 from udata.core.dataset.rdf import frequency_from_rdf
 from udata.frontend.markdown import parse_html
 from udata.models import (
-    db, Resource, License, SpatialCoverage, GeoZone,
+    db, Resource, License, SpatialCoverage, GeoZone
 )
 from udata.utils import get_by, daterange_start, daterange_end
 
@@ -96,7 +97,7 @@ class CkanBackend(BaseBackend):
         response = self.get(url)
         return response.json()
 
-    def initialize(self):
+    def inner_harvest(self):
         '''List all datasets for a given ...'''
         fix = False  # Fix should be True for CKAN < '1.8'
 
@@ -119,27 +120,31 @@ class CkanBackend(BaseBackend):
         else:
             response = self.get_action('package_list', fix=fix)
             names = response['result']
-        if self.max_items:
-            names = names[:self.max_items]
-        for name in names:
-            self.add_item(name)
 
-    def process(self, item):
+        for name in names:
+            # We use `name` as `remote_id` for now, we'll be replace at the beginning of the process
+            self.process_dataset(name)
+            if self.is_done():
+                return
+
+    def inner_process_dataset(self, item: HarvestItem):
         response = self.get_action('package_show', id=item.remote_id)
+
         result = response["result"]
         # DKAN returns a list where CKAN returns an object
         # we "unlist" here instead of after schema validation in order to get the id easily
         if type(result) == list:
             result = result[0]
-        # fix the remote_id (id instead of name) ASAP for better error reporting
+
+        # Replace the `remote_id` from `name` to `id`.
         if result.get("id"):
             item.remote_id = result["id"]
+
         data = self.validate(result, self.schema)
 
         # Skip if no resource
         if not len(data.get('resources', [])):
-            msg = 'Dataset {0} has no record'.format(item.remote_id)
-            raise HarvestSkipException(msg)
+            raise HarvestSkipException(f"Dataset {data['name']} has no record")
 
         dataset = self.get_dataset(item.remote_id)
 

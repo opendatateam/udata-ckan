@@ -9,6 +9,10 @@ from udata.utils import faker_provider, faker
 
 CKAN_URL = 'http://localhost:5000'
 
+def pytest_configure(config):
+    config.addinivalue_line(
+        "markers", "ckan_data(fixture): specify the data fixture they rely on. This allows `data`, `result` and `kwargs` fixtures to be populated with the associated data harvest data."
+    )
 
 class CkanError(ValueError):
     pass
