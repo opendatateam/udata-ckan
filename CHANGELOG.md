@@ -2,7 +2,7 @@
 
 ## Current (in progress)
 
-- Nothing yet
+- Raise exception on HTTP errors [#252](https://github.com/opendatateam/udata-ckan/pull/252)
 
 ## 4.0.0 (2024-06-07)
 
