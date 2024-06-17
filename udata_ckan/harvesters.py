@@ -63,12 +63,13 @@ class CkanBackend(BaseBackend):
         else:
             response = self.get(url, params=kwargs)
 
+        response.raise_for_status()
         content_type = response.headers.get('Content-Type', '')
         mime_type = content_type.split(';', 1)[0]
 
         if mime_type == 'application/json':  # Standard API JSON response
             data = response.json()
-            # CKAN API always returns 200 even on errors
+            # CKAN API can returns 200 even on errors
             # Only the `success` property allows to detect errors
             if data.get('success', False):
                 return data
