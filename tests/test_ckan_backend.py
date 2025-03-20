@@ -1,6 +1,7 @@
 from datetime import date
 import json
 import pytest
+import random
 
 from udata.app import create_app
 from udata.core.organization.factories import OrganizationFactory
@@ -12,6 +13,8 @@ from udata.core.spatial.factories import GeoZoneFactory
 from udata.tests.plugin import drop_db
 from udata.utils import faker
 
+from udata_ckan.harvesters import ALLOWED_RESOURCE_TYPES
+from udata_ckan.schemas.ckan import RESOURCE_TYPES
 
 class CkanSettings(Testing):
     PLUGINS = ['ckan']
@@ -133,20 +136,37 @@ def dataset_for(result):
 ##############################################################################
 
 @pytest.fixture
-def minimal():
-    resource_url = faker.unique_url()
+def resource_data():
+    return {
+    "id": faker.uuid4(),
+    "position": faker.random_digit(),
+    "name": faker.word(),
+    "description": faker.sentence(),
+    "format": faker.file_extension(),
+    "mimetype": faker.mime_type(),
+    "size": faker.random_digit(),
+    "hash": faker.md5(),
+    "created": faker.date(),
+    "last_modified": faker.date(),
+    "url": faker.unique_url(),
+    "resource_type": random.choice(list(set(RESOURCE_TYPES) & set(ALLOWED_RESOURCE_TYPES)))
+    }
+
+
+@pytest.fixture
+def minimal(resource_data):
     data = {
         'name': faker.unique_string(),
         'title': faker.sentence(),
         'notes': faker.paragraph(),
-        'resources': [{'url': resource_url}],
+        'resources': [resource_data],
     }
-    return data, {'resource_url': resource_url}
+    return data, {'resource_url': resource_data["url"]}
 
 
 @pytest.fixture
-def all_metadata():
-    resource_data = {
+def all_metadata(resource_data):
+    resource_data.update({
         'name': faker.sentence(),
         'description': faker.paragraph(),
         'url': faker.unique_url(),
@@ -154,7 +174,7 @@ def all_metadata():
         'format': faker.file_extension(),
         'last_modified': '2022-09-30',
         'created': '2022-09-29',
-    }
+    })
     data = {
         'name': faker.unique_string(),
         'title': faker.sentence(),
@@ -166,61 +186,61 @@ def all_metadata():
 
 
 @pytest.fixture
-def spatial_geom_polygon():
+def spatial_geom_polygon(resource_data):
     polygon = faker.polygon()
     data = {
         'name': faker.unique_string(),
         'title': faker.sentence(),
         'notes': faker.paragraph(),
-        'resources': [{'url': faker.unique_url()}],
+        'resources': [resource_data],
         'extras': [{'key': 'spatial', 'value': json.dumps(polygon)}]
     }
     return data, {'polygon': polygon}
 
 
 @pytest.fixture
-def spatial_geom_multipolygon():
+def spatial_geom_multipolygon(resource_data):
     multipolygon = faker.multipolygon()
     data = {
         'name': faker.unique_string(),
         'title': faker.sentence(),
         'notes': faker.paragraph(),
-        'resources': [{'url': faker.unique_url()}],
+        'resources': [resource_data],
         'extras': [{'key': 'spatial', 'value': json.dumps(multipolygon)}]
     }
     return data, {'multipolygon': multipolygon}
 
 
 @pytest.fixture
-def known_spatial_text_name(app):
+def known_spatial_text_name(app, resource_data):
     with app.app_context():
         zone = GeoZoneFactory()
     data = {
         'name': faker.unique_string(),
         'title': faker.sentence(),
         'notes': faker.paragraph(),
-        'resources': [{'url': faker.unique_url()}],
+        'resources': [resource_data],
         'extras': [{'key': 'spatial-text', 'value': zone.name}]
     }
     return data, {'zone': zone}
 
 
 @pytest.fixture
-def known_spatial_text_slug(app):
+def known_spatial_text_slug(app, resource_data):
     with app.app_context():
         zone = GeoZoneFactory()
     data = {
         'name': faker.unique_string(),
         'title': faker.sentence(),
         'notes': faker.paragraph(),
-        'resources': [{'url': faker.unique_url()}],
+        'resources': [resource_data],
         'extras': [{'key': 'spatial-text', 'value': zone.slug}]
     }
     return data, {'zone': zone}
 
 
 @pytest.fixture
-def multiple_known_spatial_text(app):
+def multiple_known_spatial_text(app, resource_data):
     name = faker.word()
     with app.app_context():
         GeoZoneFactory.create_batch(2, name=name)
@@ -228,33 +248,33 @@ def multiple_known_spatial_text(app):
         'name': faker.unique_string(),
         'title': faker.sentence(),
         'notes': faker.paragraph(),
-        'resources': [{'url': faker.unique_url()}],
+        'resources': [resource_data],
         'extras': [{'key': 'spatial-text', 'value': name}]
     }
     return data, {'name': name}
 
 
 @pytest.fixture
-def unknown_spatial_text():
+def unknown_spatial_text(resource_data):
     spatial = 'Somewhere'
     data = {
         'name': faker.unique_string(),
         'title': faker.sentence(),
         'notes': faker.paragraph(),
-        'resources': [{'url': faker.unique_url()}],
+        'resources': [resource_data],
         'extras': [{'key': 'spatial-text', 'value': spatial}]
     }
     return data, {'spatial': spatial}
 
 
 @pytest.fixture
-def spatial_uri():
+def spatial_uri(resource_data):
     spatial = 'http://www.geonames.org/2111964'
     data = {
         'name': faker.unique_string(),
         'title': faker.sentence(),
         'notes': faker.paragraph(),
-        'resources': [{'url': faker.unique_url()}],
+        'resources': [resource_data],
         'extras': [{'key': 'spatial-uri', 'value': spatial}]
     }
     return data, {'spatial': spatial}
@@ -272,38 +292,38 @@ def skipped_no_resources():
 
 
 @pytest.fixture
-def ckan_url_is_url():
+def ckan_url_is_url(resource_data):
     url = faker.unique_url()
     data = {
         'name': faker.unique_string(),
         'title': faker.sentence(),
         'notes': faker.paragraph(),
-        'resources': [{'url': faker.unique_url()}],
+        'resources': [resource_data],
         'url': url
     }
     return data, {'url': url}
 
 
 @pytest.fixture
-def ckan_url_is_a_string():
+def ckan_url_is_a_string(resource_data):
     url = faker.sentence()
     data = {
         'name': faker.unique_string(),
         'title': faker.sentence(),
         'notes': faker.paragraph(),
-        'resources': [{'url': faker.unique_url()}],
+        'resources': [resource_data],
         'url': url
     }
     return data, {'url': url}
 
 
 @pytest.fixture
-def frequency_as_rdf_uri():
+def frequency_as_rdf_uri(resource_data):
     data = {
         'name': faker.unique_string(),
         'title': faker.sentence(),
         'notes': faker.paragraph(),
-        'resources': [{'url': faker.unique_url()}],
+        'resources': [resource_data],
         'extras': [
             {'key': 'frequency', 'value': 'http://purl.org/cld/freq/daily'}
         ]
@@ -312,37 +332,37 @@ def frequency_as_rdf_uri():
 
 
 @pytest.fixture
-def frequency_as_exact_match():
+def frequency_as_exact_match(resource_data):
     data = {
         'name': faker.unique_string(),
         'title': faker.sentence(),
         'notes': faker.paragraph(),
-        'resources': [{'url': faker.unique_url()}],
+        'resources': [resource_data],
         'extras': [{'key': 'frequency', 'value': 'daily'}]
     }
     return data, {'expected': 'daily'}
 
 
 @pytest.fixture
-def frequency_as_unknown_value():
+def frequency_as_unknown_value(resource_data):
     value = 'unkowwn-value'
     data = {
         'name': faker.unique_string(),
         'title': faker.sentence(),
         'notes': faker.paragraph(),
-        'resources': [{'url': faker.unique_url()}],
+        'resources': [resource_data],
         'extras': [{'key': 'frequency', 'value': value}]
     }
     return data, {'expected': value}
 
 
 @pytest.fixture
-def empty_extras():
+def empty_extras(resource_data):
     return {
         'name': faker.unique_string(),
         'title': faker.sentence(),
         'notes': faker.paragraph(),
-        'resources': [{'url': faker.unique_url()}],
+        'resources': [resource_data],
         'extras': [
             {'key': 'none', 'value': None},
             {'key': 'blank', 'value': ''},
@@ -396,7 +416,7 @@ def test_all_metadata(data, result):
     assert resource.url == resource_data['url']
     # Use result because format is normalized by CKAN
     assert resource.format == resource_result['format'].lower()
-    assert resource.mime == resource_data['mimetype']
+    assert resource.mime == resource_data['mimetype'].lower()
     assert resource.harvest.created_at.date() == date(2022, 9, 29)
     assert resource.harvest.modified_at.date() == date(2022, 9, 30)
 
