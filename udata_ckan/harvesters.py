@@ -133,7 +133,7 @@ class CkanBackend(BaseBackend):
         result = response["result"]
         # DKAN returns a list where CKAN returns an object
         # we "unlist" here instead of after schema validation in order to get the id easily
-        if type(result) == list:
+        if type(result) is list:
             result = result[0]
 
         # Replace the `remote_id` from `name` to `id`.
