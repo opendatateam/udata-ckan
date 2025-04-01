@@ -2,6 +2,7 @@
 
 ## Current (in progress)
 
+- Raise exception on HTTP errors [#252](https://github.com/opendatateam/udata-ckan/pull/252)
 - Update humanfriendly dependency as well as develop and test deps [#240](https://github.com/opendatateam/udata-ckan/pull/240)
 
 ## 4.0.0 (2024-06-07)
