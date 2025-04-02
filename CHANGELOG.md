@@ -1,5 +1,9 @@
 # Changelog
 
+## Current (in progress)
+
+- Nothing yet
+
 ## 4.0.1 (2025-04-02)
 
 - Raise exception on HTTP errors [#252](https://github.com/opendatateam/udata-ckan/pull/252)
