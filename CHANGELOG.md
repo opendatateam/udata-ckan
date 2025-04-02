@@ -1,6 +1,6 @@
 # Changelog
 
-## Current (in progress)
+## 4.0.1 (2025-04-02)
 
 - Raise exception on HTTP errors [#252](https://github.com/opendatateam/udata-ckan/pull/252)
 - Update humanfriendly dependency as well as develop and test deps [#240](https://github.com/opendatateam/udata-ckan/pull/240)
