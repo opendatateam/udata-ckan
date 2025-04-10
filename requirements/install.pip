@@ -1,2 +1,2 @@
-udata@git+https://github.com/opendatateam/udata.git@hard_skip_empty_datasets_nodes_in_dataservices
+udata>=5.0.0
 humanfriendly==10.0
