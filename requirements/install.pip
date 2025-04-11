@@ -1,2 +1,2 @@
-udata==10.2.1.dev34775
+udata>=10.3.0
 humanfriendly==10.0
