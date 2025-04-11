@@ -1,6 +1,6 @@
 # Changelog
 
-## Current (in progress)
+## 4.0.2 (2025-04-11)
 
 - Nothing yet
 
