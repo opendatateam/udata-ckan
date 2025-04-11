@@ -179,7 +179,7 @@ def all_metadata(resource_data):
         'name': faker.unique_string(),
         'title': faker.sentence(),
         'notes': faker.paragraph(),
-        'tags': [{'name': faker.unique_string()} for _ in range(3)],
+        'tags': [{'name': faker.unique_string(), 'id': faker.unique_string()} for _ in range(3)],
         'resources': [resource_data],
     }
     return data, {'resource_data': resource_data}
@@ -286,7 +286,7 @@ def skipped_no_resources():
         'name': faker.unique_string(),
         'title': faker.sentence(),
         'notes': faker.paragraph(),
-        'tags': [{'name': faker.unique_string()} for _ in range(3)],
+        'tags': [{'name': faker.unique_string(), 'id': faker.unique_string()} for _ in range(3)],
         'resources': []
     }
 
