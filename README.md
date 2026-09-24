@@ -1,3 +1,5 @@
+**Note: This project is not maintained anymore. The CKAN harvester has been integrated in udata in https://github.com/opendatateam/udata/pull/3385.**
+
 # CKAN
 
 [![Crowdin](https://d322cqt584bo4o.cloudfront.net/udata-ckan/localized.svg)](https://crowdin.com/project/udata-ckan)
